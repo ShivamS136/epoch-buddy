@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epoch Buddy — Live Demo</title>
+    <meta
+      name="description"
+      content="Try Epoch Buddy’s core conversion flows in a live demo widget."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <div class="nav-left">
+          <div class="brand">
+            <img src="assets/logo.png" alt="Epoch Buddy logo" />
+            Epoch Buddy
+          </div>
+          <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="demo.html">Demo</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+          </nav>
+        </div>
+        <div class="cta-group">
+          <a
+            class="btn secondary"
+            href="https://github.com/ShivamS136/epoch-buddy"
+            target="_blank"
+            >GitHub</a
+          >
+          <a
+            class="btn primary"
+            href="https://chrome.google.com/webstore"
+            target="_blank"
+            >Get for Chrome</a
+          >
+        </div>
+        <button class="nav-toggle" type="button" aria-expanded="false">
+          <img
+            src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iY3VycmVudENvbG9yIj48cmVjdCB5PSI0IiB3aWR0aD0iMjQiIGhlaWdodD0iMiIvPjxyZWN0IHk9IjExIiB3aWR0aD0iMjQiIGhlaWdodD0iMiIvPjxyZWN0IHk9IjE4IiB3aWR0aD0iMjQiIGhlaWdodD0iMiIvPjwvc3ZnPg=="
+          />
+        </button>
+      </div>
+      <div class="container nav-mobile">
+        <nav class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="demo.html">Demo</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </nav>
+        <div class="cta-group">
+          <a
+            class="btn secondary"
+            href="https://github.com/ShivamS136/epoch-buddy"
+            target="_blank"
+            >GitHub</a
+          >
+          <a
+            class="btn primary"
+            href="https://chrome.google.com/webstore"
+            target="_blank"
+            >Get for Chrome</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="container">
+        <h2>Live demo</h2>
+        <p>
+          This widget mirrors Epoch Buddy’s core conversion flows. Use it to
+          test Epoch → Date, Date → Epoch, and Relative conversions in your
+          browser.
+        </p>
+
+        <div class="demo-layout">
+          <div class="demo-card">
+            <div class="demo-tabs" role="tablist">
+              <button class="demo-tab is-active" data-tab="demo-epoch">
+                Epoch → Date
+              </button>
+              <button class="demo-tab" data-tab="demo-date">
+                Date → Epoch
+              </button>
+              <button class="demo-tab" data-tab="demo-relative">
+                Relative
+              </button>
+            </div>
+
+            <div class="demo-panel is-active" data-panel="demo-epoch">
+              <label>Epoch (seconds or milliseconds)</label>
+              <input id="demo-epoch-input" placeholder="1700000000" />
+              <button id="demo-epoch-submit" class="demo-action" type="button">
+                Convert
+              </button>
+              <div class="demo-error" id="demo-epoch-error"></div>
+              <div class="demo-output" id="demo-epoch-output"></div>
+            </div>
+
+            <div class="demo-panel" data-panel="demo-date">
+              <div class="demo-grid">
+                <div>
+                  <label>Timezone</label>
+                  <select id="demo-date-tz">
+                    <option value="local">Local</option>
+                    <option value="gmt">GMT</option>
+                  </select>
+                </div>
+                <div>
+                  <label>YYYY</label>
+                  <input id="demo-year" placeholder="2026" />
+                </div>
+                <div>
+                  <label>MM</label>
+                  <input id="demo-month" placeholder="02" />
+                </div>
+                <div>
+                  <label>DD</label>
+                  <input id="demo-day" placeholder="03" />
+                </div>
+                <div>
+                  <label>HH</label>
+                  <input id="demo-hour" placeholder="12" />
+                </div>
+                <div>
+                  <label>MM</label>
+                  <input id="demo-minute" placeholder="00" />
+                </div>
+                <div>
+                  <label>SS</label>
+                  <input id="demo-second" placeholder="00" />
+                </div>
+                <div>
+                  <label>MS</label>
+                  <input id="demo-ms" placeholder="000" />
+                </div>
+              </div>
+              <button id="demo-date-submit" class="demo-action" type="button">
+                Convert
+              </button>
+              <div class="demo-error" id="demo-date-error"></div>
+              <div class="demo-output" id="demo-date-output"></div>
+            </div>
+
+            <div class="demo-panel" data-panel="demo-relative">
+              <div class="demo-grid">
+                <div>
+                  <label>Direction</label>
+                  <select id="demo-rel-dir">
+                    <option value="ago">Ago</option>
+                    <option value="from">From now</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Days</label>
+                  <input id="demo-rel-days" placeholder="0" />
+                </div>
+                <div>
+                  <label>Hours</label>
+                  <input id="demo-rel-hours" placeholder="0" />
+                </div>
+                <div>
+                  <label>Minutes</label>
+                  <input id="demo-rel-minutes" placeholder="0" />
+                </div>
+                <div>
+                  <label>Seconds</label>
+                  <input id="demo-rel-seconds" placeholder="0" />
+                </div>
+                <div>
+                  <label>MS</label>
+                  <input id="demo-rel-ms" placeholder="0" />
+                </div>
+              </div>
+              <button
+                id="demo-relative-submit"
+                class="demo-action"
+                type="button"
+              >
+                Convert
+              </button>
+              <div class="demo-error" id="demo-relative-error"></div>
+              <div class="demo-output" id="demo-relative-output"></div>
+            </div>
+          </div>
+
+          <div class="demo-card">
+            <h3>What you’re seeing</h3>
+            <p>
+              The demo widget uses the same formatting as the extension:
+              GMT/Local timestamps, epoch seconds and milliseconds, plus
+              relative time.
+            </p>
+            <img src="assets/screenshots/popup.png" alt="Epoch Buddy popup" />
+          </div>
+        </div>
+
+        <section class="section">
+          <div class="container">
+            <h2>Demo history</h2>
+            <p class="muted">
+              Stored locally in your browser (demo only). Clear any time.
+            </p>
+            <div class="demo-card">
+              <div class="history-header">
+                <h3>History</h3>
+                <div class="history-actions">
+                  <span id="demo-history-count"></span>
+                  <button id="demo-clear-history" type="button">Clear</button>
+                </div>
+              </div>
+              <ul id="demo-history-list" class="history-list"></ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>Epoch Buddy © 2026</div>
+        <div class="footer-links">
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="demo.js"></script>
+    <script src="nav.js"></script>
+  </body>
+</html>

@@ -1,0 +1,528 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #111827;
+}
+
+.container {
+  width: 340px;
+  padding: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.card {
+  margin-top: 12px;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #475569;
+  padding: 6px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tab-btn:hover {
+  background: #eaeaea;
+}
+
+.tab-btn.is-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.is-active {
+  display: block;
+}
+.date-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.date-field {
+  display: grid;
+  gap: 4px;
+}
+
+.date-field span {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.date-field input {
+  padding: 7px 6px;
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.date-field.timezone select {
+  padding: 7px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+  width: 100%;
+}
+
+.date-field.timezone select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.date-action {
+  margin-top: 8px;
+}
+
+.date-action button {
+  width: 100%;
+  padding: 7px 6px;
+  font-size: 12px;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12.5px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.3fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.relative-grid {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.relative-field {
+  display: grid;
+  gap: 4px;
+}
+
+.relative-field span {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.relative-field input,
+.relative-field select {
+  padding: 7px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #ffffff;
+  color: #111827;
+  width: 100%;
+  min-width: 0;
+}
+
+.relative-field input {
+  text-align: center;
+}
+
+.relative-field.short input {
+  max-width: 56px;
+}
+
+.relative-field.relative-action button {
+  width: 100%;
+  padding: 7px 6px;
+  font-size: 12px;
+}
+
+.relative-field select:focus,
+.relative-field input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.time-field {
+  display: grid;
+  gap: 4px;
+  align-items: start;
+}
+
+.time-field span {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.time-field input {
+  padding: 7px 6px;
+  text-align: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.time-field select {
+  padding: 7px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #ffffff;
+  color: #111827;
+  cursor: pointer;
+}
+
+.time-field select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.time-field.short input,
+.time-field.ms input {
+  justify-self: stretch;
+}
+
+button:hover {
+  background: #4338ca;
+}
+
+.error {
+  min-height: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.result {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.result-row {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  position: relative;
+}
+.result-copy {
+  margin-left: auto;
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #6b7280;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: none;
+}
+
+.result:hover .result-copy {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.result-copy.copy-success {
+  background: #16a34a;
+  color: #f8fafc;
+}
+
+.result-copy.copy-error {
+  background: #dc2626;
+  color: #f8fafc;
+}
+
+.result-row + .result-row {
+  margin-top: 4px;
+}
+
+.result-label {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.result-value {
+  color: #1f2937;
+}
+
+.result-row.relative {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.history {
+  padding-bottom: 4px;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#clear-history {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+}
+
+#clear-history:hover {
+  background: #e2e8f0;
+}
+
+.history-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#history-count {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.history-item {
+  padding: 8px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.history-epoch {
+  font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12.5px;
+  color: #111827;
+}
+
+.history-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.history-time {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.history-time-text {
+  font-variant-numeric: tabular-nums;
+}
+
+.history-line {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.history-label {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.history-value {
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty-state {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 6px 0 8px;
+}
+
+.copy-btn {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #6b7280;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: none !important;
+}
+
+.copy-btn:hover {
+  background: #e2e2e2;
+}
+
+.history-time .copy-btn {
+  font-size: 8px;
+  padding: 2px 4px;
+}
+
+.history-item:hover .copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.copy-btn.copy-success {
+  background: #16a34a;
+  color: #f8fafc;
+}
+
+.copy-btn.copy-error {
+  background: #dc2626;
+  color: #f8fafc;
+}
+
+.github-btn {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.github-btn:hover {
+  color: #0f172a;
+  border-color: #cbd5f5;
+  background: #f8fafc;
+}

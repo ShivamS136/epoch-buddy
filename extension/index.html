@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epoch Buddy</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="header-text">
+          <h1>Epoch Buddy</h1>
+          <p>Convert epoch to readable time.</p>
+        </div>
+        <a
+          href="https://github.com/ShivamS136/epoch-buddy"
+          target="_blank"
+          class="github-btn"
+        >
+          View on GitHub
+        </a>
+      </header>
+
+      <section class="card">
+        <div class="tabs" role="tablist">
+          <button
+            type="button"
+            class="tab-btn is-active"
+            data-tab="epoch-to-date"
+          >
+            Epoch → Date
+          </button>
+          <button type="button" class="tab-btn" data-tab="date-to-epoch">
+            Date → Epoch
+          </button>
+          <button type="button" class="tab-btn" data-tab="relative">
+            Relative
+          </button>
+        </div>
+
+        <form
+          id="epoch-to-date-form"
+          class="tab-panel is-active"
+          data-panel="epoch-to-date"
+        >
+          <div class="input-row">
+            <input
+              id="epoch-input"
+              type="text"
+              inputmode="numeric"
+              placeholder="Seconds (10) or milliseconds (13)"
+              autocomplete="off"
+            />
+            <button type="submit">Convert</button>
+          </div>
+          <div id="error" class="error" role="alert"></div>
+          <div id="result" class="result" hidden></div>
+        </form>
+
+        <form
+          id="date-to-epoch-form"
+          class="tab-panel"
+          data-panel="date-to-epoch"
+        >
+          <div class="date-grid">
+            <div class="date-field timezone">
+              <span>Timezone</span>
+              <select id="timezone-select">
+                <option value="local">Local</option>
+                <option value="gmt">GMT</option>
+              </select>
+            </div>
+            <div class="date-field year">
+              <span>Year</span>
+              <input
+                id="date-year"
+                type="text"
+                inputmode="numeric"
+                placeholder="YYYY"
+                autocomplete="off"
+              />
+            </div>
+            <div class="date-field short">
+              <span>Month</span>
+              <input
+                id="date-month"
+                type="text"
+                inputmode="numeric"
+                placeholder="MM"
+                autocomplete="off"
+              />
+            </div>
+            <div class="date-field short">
+              <span>Day</span>
+              <input
+                id="date-day"
+                type="text"
+                inputmode="numeric"
+                placeholder="DD"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div class="time-grid">
+            <div class="time-field short">
+              <span>Hour</span>
+              <input
+                id="time-hour"
+                type="text"
+                inputmode="numeric"
+                placeholder="00"
+              />
+            </div>
+            <div class="time-field short">
+              <span>Minute</span>
+              <input
+                id="time-minute"
+                type="text"
+                inputmode="numeric"
+                placeholder="00"
+              />
+            </div>
+            <div class="time-field short">
+              <span>Second</span>
+              <input
+                id="time-second"
+                type="text"
+                inputmode="numeric"
+                placeholder="00"
+              />
+            </div>
+            <div class="time-field ms">
+              <span>Ms</span>
+              <input
+                id="time-ms"
+                type="text"
+                inputmode="numeric"
+                placeholder="000"
+              />
+            </div>
+          </div>
+
+          <div class="input-row date-action">
+            <button type="submit">Convert</button>
+          </div>
+
+          <div id="date-error" class="error" role="alert"></div>
+          <div id="date-result" class="result" hidden></div>
+        </form>
+
+        <form id="relative-form" class="tab-panel" data-panel="relative">
+          <div class="relative-grid">
+            <div class="relative-field">
+              <span>Direction</span>
+              <select id="relative-direction">
+                <option value="ago">Ago</option>
+                <option value="from-now">From Now</option>
+              </select>
+            </div>
+            <div class="relative-field short">
+              <span>Days</span>
+              <input id="relative-days" type="text" inputmode="numeric" />
+            </div>
+            <div class="relative-field short">
+              <span>Hours</span>
+              <input id="relative-hours" type="text" inputmode="numeric" />
+            </div>
+            <div class="relative-field short">
+              <span>Minutes</span>
+              <input id="relative-minutes" type="text" inputmode="numeric" />
+            </div>
+            <div class="relative-field short">
+              <span>Seconds</span>
+              <input id="relative-seconds" type="text" inputmode="numeric" />
+            </div>
+            <div class="relative-field short">
+              <span>Ms</span>
+              <input id="relative-ms" type="text" inputmode="numeric" />
+            </div>
+            <div class="relative-field relative-action">
+              <span>&nbsp;</span>
+              <button type="submit">Convert</button>
+            </div>
+          </div>
+
+          <div id="relative-error" class="error" role="alert"></div>
+          <div id="relative-result" class="result" hidden></div>
+        </form>
+      </section>
+
+      <section class="card history">
+        <div class="history-header">
+          <h2>History</h2>
+          <div class="history-actions">
+            <span id="history-count"></span>
+            <button id="clear-history" type="button">Clear</button>
+          </div>
+        </div>
+        <ul id="history-list" class="history-list"></ul>
+      </section>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>

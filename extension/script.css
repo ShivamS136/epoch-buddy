@@ -1,0 +1,87 @@
+/* Minimal in-page popup */
+#epoch-buddy-popup {
+  position: absolute;
+  z-index: 2147483647;
+  max-width: 320px;
+  padding: 10px 12px;
+  border: 1px solid #e1e4e8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2328;
+  font-size: 12.5px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+  pointer-events: auto;
+}
+
+.epoch-buddy-row {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0;
+  white-space: nowrap;
+}
+
+.epoch-buddy-epoch {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+.epoch-buddy-label {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.epoch-buddy-value {
+  color: #1f2937;
+}
+
+.epoch-buddy-relative {
+  margin-top: 8px;
+  border-top: 1px solid #eef0f3;
+  padding-top: 8px;
+}
+
+.epoch-buddy-copy {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 2px 4px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #6b7280;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+.epoch-bro-copy:hover {
+  background: #e2e2e2;
+}
+
+#epoch-buddy-popup:hover .epoch-buddy-copy,
+.epoch-buddy-row:hover .epoch-buddy-copy {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.epoch-buddy-copy.epoch-buddy-copy-success {
+  background: #16a34a;
+  color: #f8fafc;
+}
+
+.epoch-buddy-copy.epoch-buddy-copy-error {
+  background: #dc2626;
+  color: #f8fafc;
+}
