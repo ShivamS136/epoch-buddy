@@ -36,5 +36,19 @@ Epoch Buddy is a browser extension that converts epoch timestamps into readable 
 2. Click **Load Temporary Add-on**
 3. Select `manifest.firefox.json`
 
+## Publish Extension
+### Chrome
+1. Replace `manifest.json`'s content with `manifest.chrome.json`'s content
+2. Delete other manifest files
+3. Go to the extension folder and run `zip -r -FS ./extension.zip *` to create a zip file of the extension
+4. Upload this file to the Chrome Web Store
+
+### Firefox
+1. Replace `manifest.json`'s content with `manifest.firefox.json`'s content
+2. Update `version` in `manifest.json` with the new version number
+3. Delete other manifest files
+4. Go to the extension folder and run `zip -r -FS ./extension.zip *` to create a zip file of the extension
+5. Upload this file to the Firefox Add-ons
+
 ## Development
 See [`Developer.md`](Developer.md) for the project layout and development workflow.
