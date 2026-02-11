@@ -235,7 +235,7 @@
     const row = document.createElement("div");
     row.innerHTML = `<div><strong>${label}:</strong> ${value}</div>`;
     if (copyValue) {
-      row.appendChild(createCopyButton(copyValue, { className: "result-copy" }));
+      row.appendChild(createCopyButton(copyValue));
     }
     if (hrTop) {
       row.classList.add("hr-top");

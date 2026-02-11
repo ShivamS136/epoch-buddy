@@ -106,9 +106,7 @@ import { createCopyButton } from "../shared/clipboard.js";
     rowEl.appendChild(valueEl);
 
     if (row.copy) {
-      const copyBtn = createCopyButton(row.copy);
-      copyBtn.classList.add("result-copy");
-      rowEl.appendChild(copyBtn);
+      rowEl.appendChild(createCopyButton(row.copy));
     }
 
     targetEl.appendChild(rowEl);

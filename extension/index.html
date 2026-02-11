@@ -64,14 +64,14 @@
           data-panel="date-to-epoch"
         >
           <div class="date-grid">
-            <div class="date-field timezone">
+            <div class="field-group">
               <span>Timezone</span>
               <select id="timezone-select">
                 <option value="local">Local</option>
                 <option value="gmt">GMT</option>
               </select>
             </div>
-            <div class="date-field year">
+            <div class="field-group">
               <span>Year</span>
               <input
                 id="date-year"
@@ -81,7 +81,7 @@
                 autocomplete="off"
               />
             </div>
-            <div class="date-field short">
+            <div class="field-group">
               <span>Month</span>
               <input
                 id="date-month"
@@ -91,7 +91,7 @@
                 autocomplete="off"
               />
             </div>
-            <div class="date-field short">
+            <div class="field-group">
               <span>Day</span>
               <input
                 id="date-day"
@@ -104,7 +104,7 @@
           </div>
 
           <div class="time-grid">
-            <div class="time-field short">
+            <div class="field-group">
               <span>Hour</span>
               <input
                 id="time-hour"
@@ -113,7 +113,7 @@
                 placeholder="00"
               />
             </div>
-            <div class="time-field short">
+            <div class="field-group">
               <span>Minute</span>
               <input
                 id="time-minute"
@@ -122,7 +122,7 @@
                 placeholder="00"
               />
             </div>
-            <div class="time-field short">
+            <div class="field-group">
               <span>Second</span>
               <input
                 id="time-second"
@@ -131,7 +131,7 @@
                 placeholder="00"
               />
             </div>
-            <div class="time-field ms">
+            <div class="field-group">
               <span>Ms</span>
               <input
                 id="time-ms"
@@ -142,7 +142,7 @@
             </div>
           </div>
 
-          <div class="input-row date-action">
+          <div class="field-action">
             <button type="submit">Convert</button>
           </div>
 
@@ -152,34 +152,34 @@
 
         <form id="relative-form" class="tab-panel" data-panel="relative">
           <div class="relative-grid">
-            <div class="relative-field">
+            <div class="field-group">
               <span>Direction</span>
               <select id="relative-direction">
                 <option value="ago">Ago</option>
                 <option value="from-now">From Now</option>
               </select>
             </div>
-            <div class="relative-field short">
+            <div class="field-group short">
               <span>Days</span>
               <input id="relative-days" type="text" inputmode="numeric" />
             </div>
-            <div class="relative-field short">
+            <div class="field-group short">
               <span>Hours</span>
               <input id="relative-hours" type="text" inputmode="numeric" />
             </div>
-            <div class="relative-field short">
+            <div class="field-group short">
               <span>Minutes</span>
               <input id="relative-minutes" type="text" inputmode="numeric" />
             </div>
-            <div class="relative-field short">
+            <div class="field-group short">
               <span>Seconds</span>
               <input id="relative-seconds" type="text" inputmode="numeric" />
             </div>
-            <div class="relative-field short">
+            <div class="field-group short">
               <span>Ms</span>
               <input id="relative-ms" type="text" inputmode="numeric" />
             </div>
-            <div class="relative-field relative-action">
+            <div class="field-group">
               <span>&nbsp;</span>
               <button type="submit">Convert</button>
             </div>
