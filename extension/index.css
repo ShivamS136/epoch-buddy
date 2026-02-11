@@ -4,9 +4,13 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  background: #f6f7fb;
-  color: #111827;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .container {
@@ -43,10 +47,12 @@ body {
   margin-top: 12px;
   padding: 12px;
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 }
+
+/* ── Tabs ──────────────────────────────────────────────────────── */
 
 .tabs {
   display: flex;
@@ -70,7 +76,7 @@ body {
 }
 
 .tab-btn:hover {
-  background: #eaeaea;
+  background: #e2e8f0;
 }
 
 .tab-btn.is-active {
@@ -86,19 +92,15 @@ body {
 .tab-panel.is-active {
   display: block;
 }
-.date-grid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
 
-.date-field {
+/* ── Shared field group (date / time / relative fields) ────────── */
+
+.field-group {
   display: grid;
   gap: 4px;
 }
 
-.date-field span {
+.field-group span {
   font-size: 10px;
   color: #6b7280;
   font-weight: 600;
@@ -106,39 +108,59 @@ body {
   letter-spacing: 0.04em;
 }
 
-.date-field input {
+.field-group input {
   padding: 7px 6px;
   text-align: center;
   width: 100%;
   min-width: 0;
 }
 
-.date-field.timezone select {
+.field-group select {
   padding: 7px 6px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 12px;
   background: #ffffff;
-  color: #111827;
+  color: #0f172a;
   cursor: pointer;
   width: 100%;
 }
 
-.date-field.timezone select:focus {
+.field-group select:focus,
+.field-group input:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-.date-action {
-  margin-top: 8px;
+.field-group.short input {
+  max-width: 56px;
 }
 
-.date-action button {
-  width: 100%;
-  padding: 7px 6px;
-  font-size: 12px;
+/* ── Grid layouts ──────────────────────────────────────────────── */
+
+.date-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  gap: 8px;
+  margin-bottom: 8px;
 }
+
+.time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.3fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.relative-grid {
+  display: grid;
+  grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* ── Form elements ─────────────────────────────────────────────── */
 
 label {
   display: block;
@@ -177,110 +199,22 @@ button {
   font-weight: 600;
   cursor: pointer;
 }
-.time-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.3fr;
-  gap: 8px;
-  margin-top: 10px;
-}
-.relative-grid {
-  display: grid;
-  grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 6px;
-}
-
-.relative-field {
-  display: grid;
-  gap: 4px;
-}
-
-.relative-field span {
-  font-size: 10px;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.relative-field input,
-.relative-field select {
-  padding: 7px 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 12px;
-  background: #ffffff;
-  color: #111827;
-  width: 100%;
-  min-width: 0;
-}
-
-.relative-field input {
-  text-align: center;
-}
-
-.relative-field.short input {
-  max-width: 56px;
-}
-
-.relative-field.relative-action button {
-  width: 100%;
-  padding: 7px 6px;
-  font-size: 12px;
-}
-
-.relative-field select:focus,
-.relative-field input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.time-field {
-  display: grid;
-  gap: 4px;
-  align-items: start;
-}
-
-.time-field span {
-  font-size: 10px;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.time-field input {
-  padding: 7px 6px;
-  text-align: center;
-  width: 100%;
-  min-width: 0;
-}
-
-.time-field select {
-  padding: 7px 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 12px;
-  background: #ffffff;
-  color: #111827;
-  cursor: pointer;
-}
-
-.time-field select:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.time-field.short input,
-.time-field.ms input {
-  justify-self: stretch;
-}
 
 button:hover {
   background: #4338ca;
 }
+
+.field-action {
+  margin-top: 8px;
+}
+
+.field-action button {
+  width: 100%;
+  padding: 7px 6px;
+  font-size: 12px;
+}
+
+/* ── Error ─────────────────────────────────────────────────────── */
 
 .error {
   min-height: 16px;
@@ -288,6 +222,8 @@ button:hover {
   font-size: 12px;
   color: #dc2626;
 }
+
+/* ── Result display ────────────────────────────────────────────── */
 
 .result {
   margin-top: 6px;
@@ -304,37 +240,6 @@ button:hover {
   line-height: 1.5;
   white-space: nowrap;
   position: relative;
-}
-.result-copy {
-  margin-left: auto;
-  padding: 2px 4px;
-  border-radius: 6px;
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: #f8fafc;
-  color: #0f172a;
-  border: 1px solid #6b7280;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  box-shadow: none;
-}
-
-.result:hover .result-copy {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.result-copy.copy-success {
-  background: #16a34a;
-  color: #f8fafc;
-}
-
-.result-copy.copy-error {
-  background: #dc2626;
-  color: #f8fafc;
 }
 
 .result-row + .result-row {
@@ -355,6 +260,68 @@ button:hover {
   padding-top: 6px;
   border-top: 1px solid #e2e8f0;
 }
+
+/* ── Copy button (shared across result and history) ────────────── */
+
+.copy-btn {
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #6b7280;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: none !important;
+}
+
+.copy-btn:hover {
+  background: #e2e8f0;
+}
+
+.copy-btn.copy-success {
+  background: #16a34a;
+  color: #f8fafc;
+}
+
+.copy-btn.copy-error {
+  background: #dc2626;
+  color: #f8fafc;
+}
+
+/* Result copy buttons: right-aligned via margin */
+.result-row .copy-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.result:hover .copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* History copy buttons: absolutely positioned */
+.history-line .copy-btn,
+.history-time .copy-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.history-item:hover .copy-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── History ───────────────────────────────────────────────────── */
 
 .history {
   padding-bottom: 4px;
@@ -414,10 +381,11 @@ button:hover {
 }
 
 .history-epoch {
-  font-family: "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   font-size: 12.5px;
-  color: #111827;
+  color: #0f172a;
 }
 
 .history-top {
@@ -430,7 +398,7 @@ button:hover {
 .history-time {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 6px;
   font-size: 11px;
   color: #94a3b8;
@@ -465,48 +433,7 @@ button:hover {
   padding: 6px 0 8px;
 }
 
-.copy-btn {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  padding: 2px 4px;
-  border-radius: 6px;
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: #f8fafc;
-  color: #0f172a;
-  border: 1px solid #6b7280;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  box-shadow: none !important;
-}
-
-.copy-btn:hover {
-  background: #e2e2e2;
-}
-
-.history-time .copy-btn {
-  font-size: 8px;
-  padding: 2px 4px;
-}
-
-.history-item:hover .copy-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.copy-btn.copy-success {
-  background: #16a34a;
-  color: #f8fafc;
-}
-
-.copy-btn.copy-error {
-  background: #dc2626;
-  color: #f8fafc;
-}
+/* ── GitHub button ─────────────────────────────────────────────── */
 
 .github-btn {
   display: inline-block;
@@ -518,9 +445,13 @@ button:hover {
   border: 1px solid #e2e8f0;
   border-radius: 999px;
   text-decoration: none;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background 0.2s;
   white-space: nowrap;
 }
+
 .github-btn:hover {
   color: #0f172a;
   border-color: #cbd5f5;

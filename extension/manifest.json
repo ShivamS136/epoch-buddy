@@ -13,7 +13,6 @@
     "permissions": [
         "storage"
     ],
-    "offline_enabled": true,
     "content_scripts": [
         {
             "matches": [

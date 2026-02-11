@@ -1,0 +1,15 @@
+{
+  "name": "epoch-buddy",
+  "version": "1.0.1.0",
+  "private": true,
+  "description": "Convert Epoch to Human Readable Time — browser extension and demo site",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "pack:chrome": "node scripts/build.mjs --pack chrome",
+    "pack:firefox": "node scripts/build.mjs --pack firefox"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
