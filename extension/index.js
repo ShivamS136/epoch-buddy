@@ -34,8 +34,10 @@
   const relativeSecondsEl = document.getElementById("relative-seconds");
   const relativeMsEl = document.getElementById("relative-ms");
 
+  const sanitizeEpochInput = (text) => text.replace(/[,_]/g, "");
+
   const parseEpoch = (text) => {
-    const trimmed = text.trim();
+    const trimmed = sanitizeEpochInput(text.trim());
     if (EPOCH_SECONDS_REGEX.test(trimmed)) {
       return Number(trimmed) * 1000;
     }
@@ -422,6 +424,11 @@
           stripTimezoneSuffix(entry.local || "")
         );
       } else {
+        addHistoryLine(
+          "Epoch (ms)",
+          String(entry.epochMs),
+          String(entry.epochMs)
+        );
         addHistoryLine("GMT", entry.gmt || "", entry.gmt || "");
         addHistoryLine(
           "Local",
@@ -545,7 +552,8 @@
     const epochMs = parseEpoch(inputValue);
     if (epochMs === null) {
       resultEl.hidden = true;
-      errorEl.textContent = "Enter a 10 or 13 digit epoch value.";
+      errorEl.textContent =
+        "Enter a 10 or 13 digit epoch value (commas and underscores are allowed).";
       return;
     }
 

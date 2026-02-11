@@ -85,8 +85,10 @@ const formatRelative = (epochMs) => {
   return `${parts.join(" ")} ${suffix}`;
 };
 
+const sanitizeEpochInput = (text) => text.replace(/[,_]/g, "");
+
 const parseEpoch = (value) => {
-  const trimmed = value.trim();
+  const trimmed = sanitizeEpochInput(value.trim());
   if (/^\d{10}$/.test(trimmed)) return Number(trimmed) * 1000;
   if (/^\d{13}$/.test(trimmed)) return Number(trimmed);
   return null;
@@ -208,6 +210,7 @@ const renderHistory = (history) => {
       addLine("GMT", entry.gmt, entry.gmt);
       addLine("Local", entry.local, entry.local);
     } else {
+      addLine("Epoch (ms)", String(entry.epochMs), String(entry.epochMs));
       addLine("GMT", entry.gmt, entry.gmt);
       addLine("Local", entry.local, entry.local);
     }
@@ -249,7 +252,9 @@ epochInput.addEventListener("focus", () => {
 epochInput.addEventListener("input", () => {
   epochAutoRefreshActive = false;
   const epochMs = parseEpoch(epochInput.value);
-  epochErrorEl.textContent = epochMs ? "" : "Enter 10 or 13 digit epoch value.";
+  epochErrorEl.textContent = epochMs
+    ? ""
+    : "Enter 10 or 13 digit epoch value (commas and underscores are allowed).";
 });
 epochInput.addEventListener("blur", () => {
   if (epochInput.value.trim() === "") {
@@ -352,7 +357,8 @@ relDir.addEventListener("change", () => {
 epochSubmitBtn.addEventListener("click", () => {
   const epochMs = parseEpoch(epochInput.value);
   if (!epochMs) {
-    epochErrorEl.textContent = "Enter 10 or 13 digit epoch value.";
+    epochErrorEl.textContent =
+      "Enter 10 or 13 digit epoch value (commas and underscores are allowed).";
     return;
   }
   epochErrorEl.textContent = "";

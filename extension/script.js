@@ -43,8 +43,10 @@
     return rect;
   };
 
+  const sanitizeEpochInput = (text) => text.replace(/[,_]/g, "");
+
   const parseEpoch = (text) => {
-    const trimmed = text.trim();
+    const trimmed = sanitizeEpochInput(text.trim());
     if (EPOCH_SECONDS_REGEX.test(trimmed)) {
       return Number(trimmed) * 1000;
     }
@@ -298,9 +300,9 @@
     const conversion = buildConversionData(epochMs);
     const formatted = [
       {
-        label: "Epoch",
-        value: selectedText.trim(),
-        copyValue: selectedText.trim(),
+        label: "Epoch (ms)",
+        value: epochMs,
+        copyValue: epochMs,
       },
       { label: "GMT", value: conversion.gmt, copyValue: conversion.gmt },
       {
