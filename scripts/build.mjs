@@ -176,7 +176,7 @@ function pack(target) {
 
     const src = path.join(extDir, file);
     const dest = path.join(tmpDir, file);
-    fs.copyFileSync(src, dest);
+    fs.cpSync(src, dest, { recursive: true });
   }
 
   // Patch the manifest in the temp dir for the target browser
