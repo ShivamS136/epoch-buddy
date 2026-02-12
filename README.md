@@ -1,54 +1,97 @@
 # Epoch Buddy
 
-Epoch Buddy is a browser extension that converts epoch timestamps into readable dates (and vice‑versa), directly from any web page selection or from the extension popup.
+A browser extension that converts epoch timestamps into human-readable dates (and vice-versa) -- from any web page selection or the extension popup.
 
-## What you can do
-- **Convert on-page selections**: select a 10/13-digit epoch on any website to see a compact conversion popover near your selection.
-  ![screenshot-on-page-selection](docs/assets/screenshots/popup.png)
-- **Convert from the popup**:
-  - **Epoch -> Date**: paste/type an epoch and get:
-    - Epoch (ms)
-    - GMT time
-    - Local time
-    - Relative time (ago/from now)
-      ![screenshot-epoch-to-date](docs/assets/screenshots/extension-1.png)
-  - **Date -> Epoch**: enter date/time fields (Local or GMT) and get:
-    - Epoch (ms)
-    - Epoch (s)
-    - Relative time
-      ![screenshot-date-to-epoch](docs/assets/screenshots/extension-2.png)
-  - **Relative**: enter a duration (ago/from now) and get:
-    - Epoch (ms)
-    - GMT time
-    - Local time
-    - Relative time
-      ![screenshot-relative](docs/assets/screenshots/extension-3.png)
-- **History**: last 10 conversions, with quick copy and a clear-history button.
+## Installation
 
-## Install / run locally (Developer mode)
-### Chrome / Edge
-1. Open `chrome://extensions`
-2. Enable **Developer mode**
-3. Click **Load unpacked** and select this folder
+- [Chrome Web Store](https://chromewebstore.google.com/detail/epoch-buddy/ehjdbcbcfobnkanngnjlibodhgdbhkam)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/epoch-buddy/)
 
-### Firefox
-1. Open `about:debugging#/runtime/this-firefox`
-2. Click **Load Temporary Add-on**
-3. Select `manifest.firefox.json`
+## Features
 
-## Publish Extension
-### Chrome
-1. Replace `manifest.json`'s content with `manifest.chrome.json`'s content
-2. Delete other manifest files
-3. Go to the extension folder and run `zip -r -FS ./extension.zip *` to create a zip file of the extension
-4. Upload this file to the Chrome Web Store
+- **On-page selection**: Select a 10 or 13 digit epoch on any website to see an inline conversion popup.
 
-### Firefox
-1. Replace `manifest.json`'s content with `manifest.firefox.json`'s content
-2. Update `version` in `manifest.json` with the new version number
-3. Delete other manifest files
-4. Go to the extension folder and run `zip -r -FS ./extension.zip *` to create a zip file of the extension
-5. Upload this file to the Firefox Add-ons
+  ![on-page selection popup](docs/assets/screenshots/popup.png)
+
+- **Epoch to Date**: Paste or type an epoch and get GMT, Local, and Relative time.
+
+  ![epoch to date](docs/assets/screenshots/extension-1.png)
+
+- **Date to Epoch**: Enter date/time fields and get Epoch (ms), Epoch (s), and Relative time.
+
+  ![date to epoch](docs/assets/screenshots/extension-2.png)
+
+- **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch, GMT, Local, and Relative time.
+
+  ![relative to epoch](docs/assets/screenshots/extension-3.png)
+
+- **History**: Last 10 conversions with quick copy buttons and a clear button.
+
+## Quick start
+
+```bash
+npm install
+npm run build          # one-shot build (default: Chrome/Edge manifest)
+```
+
+### Browser-specific builds
+
+The extension uses a single `manifest.json`. The build script patches it for the target browser:
+
+```bash
+npm run build              # build JS (manifest unchanged)
+npm run build:chrome       # build JS + set manifest for Chrome/Edge
+npm run build:firefox      # build JS + set manifest for Firefox
+
+npm run watch              # watch mode (manifest unchanged)
+npm run watch:chrome       # watch mode + set manifest for Chrome/Edge
+npm run watch:firefox      # watch mode + set manifest for Firefox (restores on exit)
+```
+
+### Load in browser (developer mode)
+
+**Chrome / Edge**
+
+1. Run `npm run build` or `npm run build:chrome`
+2. Open `chrome://extensions`, enable Developer mode
+3. Click **Load unpacked** and select the `extension/` folder
+
+**Firefox**
+
+1. Run `npm run build:firefox`
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on** and select `extension/manifest.json`
+
+### Packaging for store submission
+
+```bash
+npm run pack:chrome    # --> dist/chrome.zip
+npm run pack:firefox   # --> dist/firefox.zip (manifest patched automatically)
+npm run pack           # build both zips
+```
+
+Pack commands always produce a clean zip for each browser regardless of the current manifest state.
+
+## Project structure
+
+```
+src/
+  shared/            # Shared utilities (formatting, parsing, clipboard)
+  popup/main.js      # Extension popup entry point
+  content/main.js    # Content script entry point
+  demo/main.js       # GitHub Pages demo entry point
+extension/           # Extension package (HTML, CSS, manifest + built JS)
+docs/                # GitHub Pages website (HTML, CSS + built demo.js)
+scripts/build.mjs    # Build, watch, and packaging script
+```
+
+Source code lives in `src/`. The build step bundles each entry point into self-contained IIFE files using [esbuild](https://esbuild.github.io/).
 
 ## Development
-See [`Developer.md`](Developer.md) for the project layout and development workflow.
+
+See [`Developer.md`](Developer.md) for the full development workflow.
+
+## Links
+
+- [Live demo](https://shivams136.github.io/epoch-buddy/demo.html)
+- [GitHub](https://github.com/ShivamS136/epoch-buddy)

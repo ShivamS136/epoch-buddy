@@ -2,7 +2,7 @@
     "name": "Epoch Buddy",
     "short_name": "Epoch Buddy",
     "description": "Convert Epoch to Human Readable Time with some extra features",
-    "version": "1.0.1.0",
+    "version": "1.1.0",
     "manifest_version": 3,
     "homepage_url": "https://github.com/ShivamS136/epoch-buddy",
     "action": {
