@@ -200,9 +200,15 @@
       const addLine = (label, value, copyValue) => {
         const line = document.createElement("div");
         line.className = "history-line";
+        let afterLabelText = "";
+        if (label === "GMT") {
+          afterLabelText = "&nbsp;&nbsp;";
+        } else if (label === "Epoch (s)") {
+          afterLabelText = "&nbsp;";
+        }
         const labelEl = document.createElement("span");
         labelEl.className = "history-label";
-        labelEl.textContent = `${label}: `;
+        labelEl.innerHTML = `${label}${afterLabelText}: `;
         const valueEl = document.createElement("span");
         valueEl.className = "history-value";
         valueEl.textContent = value;
@@ -231,9 +237,9 @@
     });
   };
   clearHistoryEl.addEventListener("click", clearDemoHistory);
-  var appendOutputRow = (target, label, value, copyValue, hrTop = false) => {
+  var appendOutputRow = (target, label, value, copyValue, hrTop = false, afterLabelText = "") => {
     const row = document.createElement("div");
-    row.innerHTML = `<div><strong>${label}:</strong> ${value}</div>`;
+    row.innerHTML = `<div><strong>${label}${afterLabelText}:</strong> ${value}</div>`;
     if (copyValue) {
       row.appendChild(createCopyButton(copyValue));
     }
@@ -251,7 +257,7 @@
     const local = formatLocalTimestamp(date);
     epochOutput.innerHTML = "";
     appendOutputRow(epochOutput, "Epoch (ms)", epochMs, String(epochMs));
-    appendOutputRow(epochOutput, "GMT", gmt, gmt);
+    appendOutputRow(epochOutput, "GMT", gmt, gmt, false, "&nbsp;&nbsp;");
     appendOutputRow(epochOutput, "Local", local, local);
     appendOutputRow(
       epochOutput,
@@ -345,9 +351,17 @@
       dateOutput,
       "Epoch (s)",
       Math.floor(epochMs / 1e3),
-      String(Math.floor(epochMs / 1e3))
+      String(Math.floor(epochMs / 1e3)),
+      false,
+      "&nbsp;"
     );
-    appendOutputRow(dateOutput, "Relative", formatRelative(epochMs));
+    appendOutputRow(
+      dateOutput,
+      "Relative",
+      formatRelative(epochMs),
+      void 0,
+      true
+    );
   };
   dateFields.forEach(
     (field) => field.addEventListener("input", () => {
@@ -381,9 +395,9 @@
     const local = formatLocalTimestamp(date);
     relativeOutput.innerHTML = "";
     appendOutputRow(relativeOutput, "Epoch (ms)", epochMs, String(epochMs));
-    appendOutputRow(relativeOutput, "GMT", gmt, gmt);
+    appendOutputRow(relativeOutput, "GMT", gmt, gmt, false, "&nbsp;&nbsp;");
     appendOutputRow(relativeOutput, "Local", local, local);
-    appendOutputRow(relativeOutput, "Relative", relativeLabel);
+    appendOutputRow(relativeOutput, "Relative", relativeLabel, void 0, true);
     return { epochMs, relativeLabel, date };
   };
   relFields.forEach(
@@ -417,14 +431,15 @@
     const [year, month, day, hour, minute, second, ms] = dateFields.map(
       (el) => Number(el.value || 0)
     );
-    const epochMs = dateTz.value === "gmt" ? Date.UTC(year, month - 1, day, hour, minute, second, ms) : new Date(year, month - 1, day, hour, minute, second, ms).getTime();
+    const useGmt = dateTz.value === "gmt";
+    const epochMs = useGmt ? Date.UTC(year, month - 1, day, hour, minute, second, ms) : new Date(year, month - 1, day, hour, minute, second, ms).getTime();
     if (Number.isNaN(epochMs)) return;
     const date = new Date(epochMs);
     saveHistory({
       source: "date",
       input: `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(
         minute
-      )}:${pad2(second)}.${pad3(ms)} ${dateTz.value.toUpperCase()}`,
+      )}:${pad2(second)}.${pad3(ms)} ${useGmt ? "GMT" : "Local"}`,
       epochMs,
       gmt: formatGmtTimestamp(date),
       local: formatLocalTimestamp(date),
@@ -453,8 +468,8 @@
     });
   });
   var now = /* @__PURE__ */ new Date();
-  epochInput.value = String(Math.floor(Date.now() / 1e3));
-  renderEpochOutput(Number(epochInput.value) * 1e3);
+  epochInput.value = String(Math.floor(Date.now() / 1e3) * 1e3);
+  renderEpochOutput(Number(epochInput.value));
   var useGmtInit = dateTz.value === "gmt";
   dateFields[0].value = String(
     useGmtInit ? now.getUTCFullYear() : now.getFullYear()

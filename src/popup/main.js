@@ -95,14 +95,21 @@ import { createCopyButton } from "../shared/clipboard.js";
       rowEl.classList.add("relative");
     }
 
+    let afterLabelText = "";
+    if (row.label === "GMT") {
+      afterLabelText = "&nbsp;&nbsp;";
+    } else if (row.label === "Epoch (s)") {
+      afterLabelText = "&nbsp;";
+    }
+
     const labelEl = document.createElement("strong");
     labelEl.className = "result-label";
-    labelEl.textContent = `${row.label}:`;
+    labelEl.innerHTML = `${row.label}${afterLabelText}: `;
     rowEl.appendChild(labelEl);
 
     const valueEl = document.createElement("span");
     valueEl.className = "result-value";
-    valueEl.textContent = ` ${row.value}`;
+    valueEl.textContent = `${row.value}`;
     rowEl.appendChild(valueEl);
 
     if (row.copy) {
@@ -209,9 +216,17 @@ import { createCopyButton } from "../shared/clipboard.js";
       const addHistoryLine = (label, value, copyValue) => {
         const row = document.createElement("div");
         row.className = "history-line";
+
+        let afterLabelText = "";
+        if (label === "GMT") {
+          afterLabelText = "&nbsp;&nbsp;";
+        } else if (label === "Epoch (s)") {
+          afterLabelText = "&nbsp;";
+        }
+
         const rowLabel = document.createElement("span");
         rowLabel.className = "history-label";
-        rowLabel.textContent = `${label}:`;
+        rowLabel.innerHTML = `${label}${afterLabelText}: `;
         const rowValue = document.createElement("span");
         rowValue.className = "history-value";
         rowValue.textContent = value || "";
@@ -403,10 +418,12 @@ import { createCopyButton } from "../shared/clipboard.js";
   epochFormEl.addEventListener("submit", (event) => {
     event.preventDefault();
     errorEl.textContent = "";
+    errorEl.hidden = true;
     const inputValue = inputEl.value.trim();
     const epochMs = parseEpoch(inputValue);
     if (epochMs === null) {
       resultEl.hidden = true;
+      errorEl.hidden = false;
       errorEl.textContent =
         "Enter a 10 or 13 digit epoch value (commas and underscores are allowed).";
       return;
@@ -428,6 +445,7 @@ import { createCopyButton } from "../shared/clipboard.js";
   dateFormEl.addEventListener("submit", (event) => {
     event.preventDefault();
     dateErrorEl.textContent = "";
+    dateErrorEl.hidden = true;
     const dateParts = parseDateInput(
       dateYearEl.value.trim(),
       dateMonthEl.value.trim(),
@@ -435,6 +453,7 @@ import { createCopyButton } from "../shared/clipboard.js";
     );
     if (!dateParts) {
       dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
       dateErrorEl.textContent = "Enter a valid date (YYYY/MM/DD fields).";
       return;
     }
@@ -507,10 +526,11 @@ import { createCopyButton } from "../shared/clipboard.js";
   relativeFormEl.addEventListener("submit", (event) => {
     event.preventDefault();
     relativeErrorEl.textContent = "";
-
+    relativeErrorEl.hidden = true;
     const days = parseTimePart(relativeDaysEl.value, 365000, "Days");
     if (days.error) {
       relativeResultEl.hidden = true;
+      relativeErrorEl.hidden = false;
       relativeErrorEl.textContent = days.error;
       return;
     }

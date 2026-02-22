@@ -207,7 +207,7 @@
         }
         const label = document.createElement("strong");
         label.className = "epoch-buddy-label";
-        label.textContent = `${line.label}:`;
+        label.innerHTML = `${line.label}${line.afterLabelText || ""}: `;
         row.appendChild(label);
         const value = document.createElement("span");
         value.className = "epoch-buddy-value";
@@ -288,7 +288,12 @@
           value: epochMs,
           copyValue: epochMs
         },
-        { label: "GMT", value: conversion.gmt, copyValue: conversion.gmt },
+        {
+          label: "GMT",
+          value: conversion.gmt,
+          copyValue: conversion.gmt,
+          afterLabelText: "&nbsp;&nbsp;"
+        },
         {
           label: "Local",
           value: conversion.local,

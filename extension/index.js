@@ -253,13 +253,19 @@
       if (row.isRelative) {
         rowEl.classList.add("relative");
       }
+      let afterLabelText = "";
+      if (row.label === "GMT") {
+        afterLabelText = "&nbsp;&nbsp;";
+      } else if (row.label === "Epoch (s)") {
+        afterLabelText = "&nbsp;";
+      }
       const labelEl = document.createElement("strong");
       labelEl.className = "result-label";
-      labelEl.textContent = `${row.label}:`;
+      labelEl.innerHTML = `${row.label}${afterLabelText}: `;
       rowEl.appendChild(labelEl);
       const valueEl = document.createElement("span");
       valueEl.className = "result-value";
-      valueEl.textContent = ` ${row.value}`;
+      valueEl.textContent = `${row.value}`;
       rowEl.appendChild(valueEl);
       if (row.copy) {
         rowEl.appendChild(createCopyButton(row.copy));
@@ -343,9 +349,15 @@
         const addHistoryLine = (label, value, copyValue) => {
           const row = document.createElement("div");
           row.className = "history-line";
+          let afterLabelText = "";
+          if (label === "GMT") {
+            afterLabelText = "&nbsp;&nbsp;";
+          } else if (label === "Epoch (s)") {
+            afterLabelText = "&nbsp;";
+          }
           const rowLabel = document.createElement("span");
           rowLabel.className = "history-label";
-          rowLabel.textContent = `${label}:`;
+          rowLabel.innerHTML = `${label}${afterLabelText}: `;
           const rowValue = document.createElement("span");
           rowValue.className = "history-value";
           rowValue.textContent = value || "";
@@ -505,10 +517,12 @@
     epochFormEl.addEventListener("submit", (event) => {
       event.preventDefault();
       errorEl.textContent = "";
+      errorEl.hidden = true;
       const inputValue = inputEl.value.trim();
       const epochMs = parseEpoch(inputValue);
       if (epochMs === null) {
         resultEl.hidden = true;
+        errorEl.hidden = false;
         errorEl.textContent = "Enter a 10 or 13 digit epoch value (commas and underscores are allowed).";
         return;
       }
@@ -527,6 +541,7 @@
     dateFormEl.addEventListener("submit", (event) => {
       event.preventDefault();
       dateErrorEl.textContent = "";
+      dateErrorEl.hidden = true;
       const dateParts = parseDateInput(
         dateYearEl.value.trim(),
         dateMonthEl.value.trim(),
@@ -534,6 +549,7 @@
       );
       if (!dateParts) {
         dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
         dateErrorEl.textContent = "Enter a valid date (YYYY/MM/DD fields).";
         return;
       }
@@ -599,9 +615,11 @@
     relativeFormEl.addEventListener("submit", (event) => {
       event.preventDefault();
       relativeErrorEl.textContent = "";
+      relativeErrorEl.hidden = true;
       const days = parseTimePart(relativeDaysEl.value, 365e3, "Days");
       if (days.error) {
         relativeResultEl.hidden = true;
+        relativeErrorEl.hidden = false;
         relativeErrorEl.textContent = days.error;
         return;
       }

@@ -322,6 +322,7 @@ button img {
 .floating-field input,
 .floating-field select {
   padding: 8px;
+  font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
 }
 
 .floating-field input:focus,
@@ -461,7 +462,8 @@ button img {
   font-size: 13px;
   color: #0f172a;
   display: grid;
-  gap: 6px;
+  gap: 4px;
+  font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
 }
 
 .demo-output > div {
@@ -580,6 +582,7 @@ ul.history-list {
   border-radius: 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
+  font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
 }
 
 .history-epoch {
@@ -608,7 +611,7 @@ ul.history-list {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 12px;
 }
 
