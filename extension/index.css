@@ -93,66 +93,91 @@ body {
   display: block;
 }
 
-/* ── Shared field group (date / time / relative fields) ────────── */
+/* ── Floating outlined fields ─────────────────────────────────── */
 
-.field-group {
-  display: grid;
-  gap: 4px;
+.floating-field {
+  position: relative;
 }
 
-.field-group span {
-  font-size: 10px;
-  color: #6b7280;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.field-group input {
-  padding: 7px 6px;
-  text-align: center;
+.floating-field input,
+.floating-field select {
   width: 100%;
-  min-width: 0;
-}
-
-.field-group select {
-  padding: 7px 6px;
+  padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 12px;
   background: #ffffff;
   color: #0f172a;
-  cursor: pointer;
-  width: 100%;
+  outline: none;
+  min-width: 0;
 }
 
-.field-group select:focus,
-.field-group input:focus {
-  outline: none;
+.floating-field select {
+  text-align: left;
+  cursor: pointer;
+}
+
+.floating-field input:focus,
+.floating-field select:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-.field-group.short input {
-  max-width: 56px;
+.floating-field label {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+  pointer-events: none;
+  transition: 0.15s ease all;
+  background: #ffffff;
+  padding: 0 2px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.floating-field input:focus + label,
+.floating-field input:not(:placeholder-shown) + label {
+  top: 0;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.floating-field input:focus + label {
+  color: #6366f1;
+}
+
+.floating-field select + label {
+  top: 0;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.floating-field select:focus + label {
+  color: #6366f1;
 }
 
 /* ── Time presets ──────────────────────────────────────────────── */
 
-.time-presets {
+.preset-row{
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 6px;
   margin-bottom: 8px;
 }
 
-.preset-heading {
-  font-size: 10px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-right: 2px;
+.preset-row :last-child {
+  flex: 1;
+}
+
+.time-presets {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }
 
 .preset-chip {
@@ -185,20 +210,6 @@ body {
   border-color: #6366f1;
 }
 
-/* .btn-clock {
-  background-color: #eefaff;
-  border-color: #2cafef;
-}
-
-.btn-sun {
-  background-color: #fff9ea;
-  border-color: #ffcd49;
-}
-
-.btn-moon {
-  background-color: #f0f0ff;
-  border-color: #578fff;
-} */
 /* ── Grid layouts ──────────────────────────────────────────────── */
 
 .date-grid {
@@ -222,15 +233,12 @@ body {
   margin-top: 6px;
 }
 
-/* ── Form elements ─────────────────────────────────────────────── */
-
-label {
-  display: block;
+.relative-grid > button[type="submit"] {
+  align-self: stretch;
   font-size: 12px;
-  color: #374151;
-  font-weight: 600;
-  margin-bottom: 6px;
 }
+
+/* ── Form elements ─────────────────────────────────────────────── */
 
 .input-row {
   display: flex;
@@ -264,16 +272,6 @@ button {
 
 button:hover {
   background: #4338ca;
-}
-
-.field-action {
-  margin-top: 8px;
-}
-
-.field-action button {
-  width: 100%;
-  padding: 7px 6px;
-  font-size: 12px;
 }
 
 /* ── Error ─────────────────────────────────────────────────────── */

@@ -96,109 +96,113 @@
             </div>
 
             <div class="demo-panel is-active" data-panel="demo-epoch">
-              <label>Epoch (seconds or milliseconds)</label>
-              <input id="demo-epoch-input" placeholder="1700000000" />
-              <button id="demo-epoch-submit" class="demo-action" type="button">
-                Convert
-              </button>
+              <div class="input-row">
+                <div class="floating-field" style="flex:1">
+                  <input id="demo-epoch-input" type="text" placeholder=" " />
+                  <label for="demo-epoch-input">Epoch</label>
+                </div>
+                <button id="demo-epoch-submit" class="demo-action" type="button">
+                  Convert
+                </button>
+              </div>
+              <div class="hint">
+                <small>Seconds (10) or milliseconds (13)</small>
+              </div>
               <div class="demo-error" id="demo-epoch-error"></div>
               <div class="demo-output" id="demo-epoch-output"></div>
             </div>
 
             <div class="demo-panel" data-panel="demo-date">
               <div class="demo-grid">
-                <div>
-                  <label>Timezone</label>
+                <div class="floating-field">
                   <select id="demo-date-tz">
                     <option value="local">Local</option>
                     <option value="gmt">GMT</option>
                   </select>
+                  <label for="demo-date-tz">Timezone</label>
                 </div>
-                <div>
-                  <label>YYYY</label>
-                  <input id="demo-year" placeholder="2026" />
+                <div class="floating-field">
+                  <input id="demo-year" placeholder=" " />
+                  <label for="demo-year">Year</label>
                 </div>
-                <div>
-                  <label>MM</label>
-                  <input id="demo-month" placeholder="02" />
+                <div class="floating-field">
+                  <input id="demo-month" placeholder=" " />
+                  <label for="demo-month">Month</label>
                 </div>
-                <div>
-                  <label>DD</label>
-                  <input id="demo-day" placeholder="03" />
-                </div>
-                <div>
-                  <label>HH</label>
-                  <input id="demo-hour" placeholder="12" />
-                </div>
-                <div>
-                  <label>MM</label>
-                  <input id="demo-minute" placeholder="00" />
-                </div>
-                <div>
-                  <label>SS</label>
-                  <input id="demo-second" placeholder="00" />
-                </div>
-                <div>
-                  <label>MS</label>
-                  <input id="demo-ms" placeholder="000" />
+                <div class="floating-field">
+                  <input id="demo-day" placeholder=" " />
+                  <label for="demo-day">Day</label>
                 </div>
               </div>
-              <div class="time-presets" role="group" aria-label="Time presets">
-                <span class="preset-heading">Quick Preset</span>
-                <button type="button" class="preset-chip" data-preset="now" title="Current time">
-                  <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
-                </button>
-                <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
-                  <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
-                </button>
-                <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
-                  <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
-                </button>
+              <div class="demo-grid">
+                <div class="floating-field">
+                  <input id="demo-hour" placeholder=" " />
+                  <label for="demo-hour">Hour</label>
+                </div>
+                <div class="floating-field">
+                  <input id="demo-minute" placeholder=" " />
+                  <label for="demo-minute">Min</label>
+                </div>
+                <div class="floating-field">
+                  <input id="demo-second" placeholder=" " />
+                  <label for="demo-second">Sec</label>
+                </div>
+                <div class="floating-field">
+                  <input id="demo-ms" placeholder=" " />
+                  <label for="demo-ms">Ms</label>
+                </div>
               </div>
-              <button id="demo-date-submit" class="demo-action" type="button">
-                Convert
-              </button>
+              <div class="preset-row">
+                <div class="time-presets" role="group" aria-label="Time presets">
+                  <button type="button" class="preset-chip" data-preset="now" title="Current time">
+                    <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
+                  </button>
+                  <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
+                    <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
+                  </button>
+                  <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
+                    <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
+                  </button>
+                </div>
+                <button id="demo-date-submit" class="demo-action" type="button">Convert</button>
+              </div>
               <div class="demo-error" id="demo-date-error"></div>
               <div class="demo-output" id="demo-date-output"></div>
             </div>
 
             <div class="demo-panel" data-panel="demo-relative">
               <div class="demo-grid">
-                <div>
-                  <label>Direction</label>
+                <div class="floating-field">
                   <select id="demo-rel-dir">
                     <option value="ago">Ago</option>
                     <option value="from">From now</option>
                   </select>
+                  <label for="demo-rel-dir">Direction</label>
                 </div>
-                <div>
-                  <label>Days</label>
-                  <input id="demo-rel-days" placeholder="0" />
+                <div class="floating-field">
+                  <input id="demo-rel-days" placeholder=" " />
+                  <label for="demo-rel-days">Days</label>
                 </div>
-                <div>
-                  <label>Hours</label>
-                  <input id="demo-rel-hours" placeholder="0" />
+                <div class="floating-field">
+                  <input id="demo-rel-hours" placeholder=" " />
+                  <label for="demo-rel-hours">Hours</label>
                 </div>
-                <div>
-                  <label>Minutes</label>
-                  <input id="demo-rel-minutes" placeholder="0" />
+                <div class="floating-field">
+                  <input id="demo-rel-minutes" placeholder=" " />
+                  <label for="demo-rel-minutes">Min</label>
                 </div>
-                <div>
-                  <label>Seconds</label>
-                  <input id="demo-rel-seconds" placeholder="0" />
+                <div class="floating-field">
+                  <input id="demo-rel-seconds" placeholder=" " />
+                  <label for="demo-rel-seconds">Sec</label>
                 </div>
-                <div>
-                  <label>MS</label>
-                  <input id="demo-rel-ms" placeholder="0" />
+                <div class="floating-field">
+                  <input id="demo-rel-ms" placeholder=" " />
+                  <label for="demo-rel-ms">Ms</label>
                 </div>
+                <button id="demo-relative-submit" class="demo-action" type="button" style="grid-column: span 2">
+                  Convert
+                </button>
               </div>
-              <button
-                id="demo-relative-submit"
-                class="demo-action"
-                type="button"
-              >
-                Convert
-              </button>
               <div class="demo-error" id="demo-relative-error"></div>
               <div class="demo-output" id="demo-relative-output"></div>
             </div>

@@ -304,12 +304,6 @@ button img {
   gap: 12px;
 }
 
-.demo-panel label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-}
-
 .demo-panel input,
 .demo-panel select {
   padding: 10px 12px;
@@ -317,6 +311,87 @@ button img {
   border: 1px solid #d1d5db;
   font-size: 14px;
   width: 100%;
+}
+
+/* ── Floating outlined fields ─────────────────────────────────── */
+
+.floating-field {
+  position: relative;
+}
+
+.floating-field input,
+.floating-field select {
+  padding: 8px;
+}
+
+.floating-field input:focus,
+.floating-field select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.floating-field select {
+  cursor: pointer;
+}
+
+.floating-field label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+  pointer-events: none;
+  transition: 0.15s ease all;
+  background: #ffffff;
+  padding: 0 3px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.floating-field input:focus + label,
+.floating-field input:not(:placeholder-shown) + label {
+  top: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.floating-field input:focus + label {
+  color: #6366f1;
+}
+
+.floating-field select + label {
+  top: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.floating-field select:focus + label {
+  color: #6366f1;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.preset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.preset-row :last-child {
+  flex: 1;
 }
 
 .demo-action {
@@ -340,15 +415,6 @@ button img {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.preset-heading {
-  font-size: 10px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-right: 2px;
 }
 
 .preset-chip {
@@ -383,8 +449,8 @@ button img {
 
 .demo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
 }
 
 .demo-output {
