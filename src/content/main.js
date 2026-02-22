@@ -110,7 +110,7 @@ import { createCopyButton } from "../shared/clipboard.js";
 
   const renderPopup = (rect, formatted) => {
     const el = createPopupEl();
-    el.innerHTML = "";
+    el.replaceChildren ? el.replaceChildren() : (el.textContent = "");
     formatted.forEach((line) => {
       const row = document.createElement("div");
       row.className = "epoch-buddy-row";
@@ -120,12 +120,12 @@ import { createCopyButton } from "../shared/clipboard.js";
 
       const label = document.createElement("strong");
       label.className = "epoch-buddy-label";
-      label.innerHTML = `${line.label}${line.afterLabelText || ""}: `;
+      label.textContent = `${line.label}${line.afterLabelText || ""}:`;
       row.appendChild(label);
 
       const value = document.createElement("span");
       value.className = "epoch-buddy-value";
-      value.textContent = ` ${line.value}`;
+      value.textContent = `${line.value}`;
       row.appendChild(value);
 
       if (!line.noCopy) {
@@ -244,7 +244,7 @@ import { createCopyButton } from "../shared/clipboard.js";
         label: "GMT",
         value: conversion.gmt,
         copyValue: conversion.gmt,
-        afterLabelText: "&nbsp;&nbsp;",
+        afterLabelText: "  ",
       },
       {
         label: "Local",

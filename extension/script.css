@@ -62,7 +62,7 @@
   align-items: baseline;
   gap: 6px;
   padding: 2px 0;
-  white-space: nowrap;
+  white-space: pre;
 }
 
 .epoch-buddy-label {

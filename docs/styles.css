@@ -39,7 +39,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 16px;
   gap: 16px;
 }
 
@@ -463,6 +463,7 @@ button img {
   color: #0f172a;
   display: grid;
   gap: 4px;
+  white-space: pre;
   font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
 }
 
@@ -613,6 +614,7 @@ ul.history-list {
   gap: 6px;
   margin-top: 4px;
   font-size: 12px;
+  white-space: pre;
 }
 
 .history-label {

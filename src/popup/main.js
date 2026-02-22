@@ -97,14 +97,14 @@ import { createCopyButton } from "../shared/clipboard.js";
 
     let afterLabelText = "";
     if (row.label === "GMT") {
-      afterLabelText = "&nbsp;&nbsp;";
+      afterLabelText = "  ";
     } else if (row.label === "Epoch (s)") {
-      afterLabelText = "&nbsp;";
+      afterLabelText = " ";
     }
 
     const labelEl = document.createElement("strong");
     labelEl.className = "result-label";
-    labelEl.innerHTML = `${row.label}${afterLabelText}: `;
+    labelEl.textContent = `${row.label}${afterLabelText}: `;
     rowEl.appendChild(labelEl);
 
     const valueEl = document.createElement("span");
@@ -120,7 +120,9 @@ import { createCopyButton } from "../shared/clipboard.js";
   };
 
   const renderEpochToDateResult = (epochMs, conversion) => {
-    resultEl.innerHTML = "";
+    resultEl.replaceChildren
+      ? resultEl.replaceChildren()
+      : (resultEl.textContent = "");
     const rows = [
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
       { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
@@ -137,7 +139,9 @@ import { createCopyButton } from "../shared/clipboard.js";
   };
 
   const renderDateToEpochResult = (epochMs, conversion) => {
-    dateResultEl.innerHTML = "";
+    dateResultEl.replaceChildren
+      ? dateResultEl.replaceChildren()
+      : (dateResultEl.textContent = "");
     const rows = [
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
       {
@@ -153,7 +157,9 @@ import { createCopyButton } from "../shared/clipboard.js";
   };
 
   const renderRelativeResult = (epochMs, conversion, relativeLabel) => {
-    relativeResultEl.innerHTML = "";
+    relativeResultEl.replaceChildren
+      ? relativeResultEl.replaceChildren()
+      : (relativeResultEl.textContent = "");
     const rows = [
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
       { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
@@ -172,7 +178,9 @@ import { createCopyButton } from "../shared/clipboard.js";
   // ── History rendering ─────────────────────────────────────────────
 
   const renderHistory = (history) => {
-    historyListEl.innerHTML = "";
+    historyListEl.replaceChildren
+      ? historyListEl.replaceChildren()
+      : (historyListEl.textContent = "");
     const entries = Array.isArray(history) ? history : [];
     historyCountEl.textContent = entries.length
       ? `${entries.length} items`
@@ -219,14 +227,14 @@ import { createCopyButton } from "../shared/clipboard.js";
 
         let afterLabelText = "";
         if (label === "GMT") {
-          afterLabelText = "&nbsp;&nbsp;";
+          afterLabelText = "  ";
         } else if (label === "Epoch (s)") {
-          afterLabelText = "&nbsp;";
+          afterLabelText = " ";
         }
 
         const rowLabel = document.createElement("span");
         rowLabel.className = "history-label";
-        rowLabel.innerHTML = `${label}${afterLabelText}: `;
+        rowLabel.textContent = `${label}${afterLabelText}:`;
         const rowValue = document.createElement("span");
         rowValue.className = "history-value";
         rowValue.textContent = value || "";

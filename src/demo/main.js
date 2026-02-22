@@ -67,7 +67,9 @@ const clearDemoHistory = () => {
 };
 
 const renderHistory = (history) => {
-  historyListEl.innerHTML = "";
+  historyListEl.replaceChildren
+    ? historyListEl.replaceChildren()
+    : (historyListEl.innerText = "");
   historyCountEl.textContent = history.length ? `${history.length} items` : "";
   if (history.length === 0) {
     const empty = document.createElement("li");
@@ -110,14 +112,14 @@ const renderHistory = (history) => {
 
       let afterLabelText = "";
       if (label === "GMT") {
-        afterLabelText = "&nbsp;&nbsp;";
+        afterLabelText = "  ";
       } else if (label === "Epoch (s)") {
-        afterLabelText = "&nbsp;";
+        afterLabelText = " ";
       }
 
       const labelEl = document.createElement("span");
       labelEl.className = "history-label";
-      labelEl.innerHTML = `${label}${afterLabelText}: `;
+      labelEl.textContent = `${label}${afterLabelText}: `;
       const valueEl = document.createElement("span");
       valueEl.className = "history-value";
       valueEl.textContent = value;
@@ -161,7 +163,14 @@ const appendOutputRow = (
   afterLabelText = "",
 ) => {
   const row = document.createElement("div");
-  row.innerHTML = `<div><strong>${label}${afterLabelText}:</strong> ${value}</div>`;
+  const labelEl = document.createElement("strong");
+  labelEl.textContent = `${label}${afterLabelText}:`;
+  const valueEl = document.createElement("span");
+  valueEl.textContent = ` ${value}`;
+  const rowContent = document.createElement("div");
+  rowContent.appendChild(labelEl);
+  rowContent.appendChild(valueEl);
+  row.appendChild(rowContent);
   if (copyValue) {
     row.appendChild(createCopyButton(copyValue));
   }
@@ -181,9 +190,11 @@ const renderEpochOutput = (epochMs) => {
   const date = new Date(epochMs);
   const gmt = formatGmtTimestamp(date);
   const local = formatLocalTimestamp(date);
-  epochOutput.innerHTML = "";
+  epochOutput.replaceChildren
+    ? epochOutput.replaceChildren()
+    : (epochOutput.textContent = "");
   appendOutputRow(epochOutput, "Epoch (ms)", epochMs, String(epochMs));
-  appendOutputRow(epochOutput, "GMT", gmt, gmt, false, "&nbsp;&nbsp;");
+  appendOutputRow(epochOutput, "GMT", gmt, gmt, false, "  ");
   appendOutputRow(epochOutput, "Local", local, local);
   appendOutputRow(
     epochOutput,
@@ -290,7 +301,9 @@ const renderDateOutput = () => {
     return;
   }
   dateErrorEl.textContent = "";
-  dateOutput.innerHTML = "";
+  dateOutput.replaceChildren
+    ? dateOutput.replaceChildren()
+    : (dateOutput.textContent = "");
   appendOutputRow(dateOutput, "Epoch (ms)", epochMs, String(epochMs));
   appendOutputRow(
     dateOutput,
@@ -298,7 +311,7 @@ const renderDateOutput = () => {
     Math.floor(epochMs / 1000),
     String(Math.floor(epochMs / 1000)),
     false,
-    "&nbsp;",
+    " ",
   );
   appendOutputRow(
     dateOutput,
@@ -344,9 +357,11 @@ const renderRelativeOutput = () => {
   const date = new Date(epochMs);
   const gmt = formatGmtTimestamp(date);
   const local = formatLocalTimestamp(date);
-  relativeOutput.innerHTML = "";
+  relativeOutput.replaceChildren
+    ? relativeOutput.replaceChildren()
+    : (relativeOutput.textContent = "");
   appendOutputRow(relativeOutput, "Epoch (ms)", epochMs, String(epochMs));
-  appendOutputRow(relativeOutput, "GMT", gmt, gmt, false, "&nbsp;&nbsp;");
+  appendOutputRow(relativeOutput, "GMT", gmt, gmt, false, "  ");
   appendOutputRow(relativeOutput, "Local", local, local);
   appendOutputRow(relativeOutput, "Relative", relativeLabel, undefined, true);
   return { epochMs, relativeLabel, date };
