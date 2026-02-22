@@ -9,11 +9,51 @@
   background: #ffffff;
   color: #1f2937;
   font-size: 12.5px;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "JetBrains Mono", "SF Mono", "Consolas", "Liberation Mono", "Menlo", monospace;
   line-height: 1.5;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
   pointer-events: auto;
-  font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
+}
+
+/* Arrow tip — shared positioning for both pseudo-elements */
+#epoch-buddy-popup::before,
+#epoch-buddy-popup::after {
+  position: absolute;
+  left: var(--eb-arrow-x, 24px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Arrow on top edge (popup below selection → arrow points up) */
+#epoch-buddy-popup.eb-arrow-top::before {
+  content: '';
+  top: -7px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #e2e8f0;
+}
+#epoch-buddy-popup.eb-arrow-top::after {
+  content: '';
+  top: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #ffffff;
+}
+
+/* Arrow on bottom edge (popup above selection → arrow points down) */
+#epoch-buddy-popup.eb-arrow-bottom::before {
+  content: '';
+  bottom: -7px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 7px solid #e2e8f0;
+}
+#epoch-buddy-popup.eb-arrow-bottom::after {
+  content: '';
+  bottom: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #ffffff;
 }
 
 .epoch-buddy-row {

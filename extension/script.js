@@ -223,7 +223,6 @@
         }
         el.appendChild(row);
       });
-      console.log(rect);
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
       const vw = document.documentElement.clientWidth;
@@ -252,8 +251,23 @@
       } else {
         left = Math.max(scrollX + vw - popupW - gap, scrollX + gap);
       }
-      el.style.top = `${Math.max(top, scrollY + gap)}px`;
-      el.style.left = `${Math.max(left, scrollX + gap)}px`;
+      const finalTop = Math.max(top, scrollY + gap);
+      const finalLeft = Math.max(left, scrollX + gap);
+      el.classList.remove("eb-arrow-top", "eb-arrow-bottom");
+      if (fitsBelow) {
+        el.classList.add("eb-arrow-top");
+      } else if (fitsAbove) {
+        el.classList.add("eb-arrow-bottom");
+      }
+      const selCenterX = rect.left + rect.width / 2 + scrollX;
+      const arrowPad = 16;
+      const arrowX = Math.max(
+        arrowPad,
+        Math.min(selCenterX - finalLeft, popupW - arrowPad)
+      );
+      el.style.setProperty("--eb-arrow-x", `${arrowX}px`);
+      el.style.top = `${finalTop}px`;
+      el.style.left = `${finalLeft}px`;
     };
     const handleSelection = (event) => {
       if (event?.target instanceof Node && popupEl && popupEl.contains(event.target)) {
