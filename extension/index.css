@@ -137,6 +137,68 @@ body {
   max-width: 56px;
 }
 
+/* ── Time presets ──────────────────────────────────────────────── */
+
+.time-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.preset-heading {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
+}
+
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.preset-chip img {
+  display: block;
+}
+
+.preset-chip:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.preset-chip.is-active {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
+/* .btn-clock {
+  background-color: #eefaff;
+  border-color: #2cafef;
+}
+
+.btn-sun {
+  background-color: #fff9ea;
+  border-color: #ffcd49;
+}
+
+.btn-moon {
+  background-color: #f0f0ff;
+  border-color: #578fff;
+} */
 /* ── Grid layouts ──────────────────────────────────────────────── */
 
 .date-grid {
@@ -150,7 +212,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1.3fr;
   gap: 8px;
-  margin-top: 10px;
+  margin-bottom: 8px;
 }
 
 .relative-grid {
@@ -433,17 +495,13 @@ button:hover {
   padding: 6px 0 8px;
 }
 
-/* ── GitHub button ─────────────────────────────────────────────── */
+/* ── Icon button ─────────────────────────────────────────────── */
 
-.github-btn {
+.icon-btn {
+  width:30px;
+  height:30px;
   display: inline-block;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
   background: transparent;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
   text-decoration: none;
   transition:
     color 0.2s,
@@ -452,8 +510,18 @@ button:hover {
   white-space: nowrap;
 }
 
-.github-btn:hover {
+.icon-btn:hover {
+  filter: opacity(0.8);
+}
+
+.icon-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.icon-btn svg path {
+  fill: currentColor;
+}
+.i-github {
   color: #0f172a;
-  border-color: #cbd5f5;
-  background: #f8fafc;
 }

@@ -143,6 +143,18 @@
                   <input id="demo-ms" placeholder="000" />
                 </div>
               </div>
+              <div class="time-presets" role="group" aria-label="Time presets">
+                <span class="preset-heading">Quick Preset</span>
+                <button type="button" class="preset-chip" data-preset="now" title="Current time">
+                  <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
+                </button>
+                <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
+                  <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
+                </button>
+                <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
+                  <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
+                </button>
+              </div>
               <button id="demo-date-submit" class="demo-action" type="button">
                 Convert
               </button>

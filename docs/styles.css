@@ -328,7 +328,6 @@ button img {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  justify-self: start;
 }
 
 .demo-error {
@@ -337,9 +336,54 @@ button img {
   min-height: 16px;
 }
 
+.time-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preset-heading {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
+}
+
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.preset-chip img {
+  display: block;
+}
+
+.preset-chip:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.preset-chip.is-active {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
 .demo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 12px;
 }
 

@@ -181,7 +181,7 @@ const renderEpochOutput = (epochMs) => {
 
 const updateEpochInput = () => {
   if (!epochAutoRefreshActive || document.activeElement === epochInput) return;
-  epochInput.value = String(Math.floor(Date.now() / 1000));
+  epochInput.value = String(Math.floor(Date.now() / 1000) * 1000);
 };
 
 epochInput.addEventListener("focus", () => {
@@ -216,6 +216,51 @@ const dateFields = [
   "demo-ms",
 ].map((id) => document.getElementById(id));
 const dateOutput = document.getElementById("demo-date-output");
+
+// ── Time presets ──────────────────────────────────────────────────
+
+const presetChips = document.querySelectorAll(".preset-chip");
+const timeFields = dateFields.slice(3); // [hour, minute, second, ms]
+
+const setActivePreset = (preset) => {
+  presetChips.forEach((chip) => {
+    chip.classList.toggle("is-active", chip.dataset.preset === preset);
+  });
+};
+
+const applyTimePreset = (preset) => {
+  const useGmt = dateTz.value === "gmt";
+  if (preset === "sod") {
+    timeFields.forEach((f) => (f.value = "00"));
+    timeFields[3].value = "000";
+  } else if (preset === "eod") {
+    timeFields[0].value = "23";
+    timeFields[1].value = "59";
+    timeFields[2].value = "59";
+    timeFields[3].value = "999";
+  } else if (preset === "now") {
+    const now = new Date();
+    timeFields[0].value = pad2(useGmt ? now.getUTCHours() : now.getHours());
+    timeFields[1].value = pad2(useGmt ? now.getUTCMinutes() : now.getMinutes());
+    timeFields[2].value = pad2(useGmt ? now.getUTCSeconds() : now.getSeconds());
+    timeFields[3].value = pad3(
+      useGmt ? now.getUTCMilliseconds() : now.getMilliseconds(),
+    );
+  }
+  setActivePreset(preset);
+};
+
+presetChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    applyTimePreset(chip.dataset.preset);
+  });
+});
+
+timeFields.forEach((input) => {
+  input.addEventListener("input", () => {
+    setActivePreset(null);
+  });
+});
 
 const renderDateOutput = () => {
   const [year, month, day, hour, minute, second, ms] = dateFields.map((el) =>
@@ -368,18 +413,15 @@ const now = new Date();
 epochInput.value = String(Math.floor(Date.now() / 1000));
 renderEpochOutput(Number(epochInput.value) * 1000);
 
-const dateDefaults = [
-  now.getFullYear(),
-  now.getMonth() + 1,
-  now.getDate(),
-  now.getHours(),
-  now.getMinutes(),
-  now.getSeconds(),
-  0,
-];
-dateFields.forEach((field, index) => {
-  field.value = pad2(dateDefaults[index] || 0);
-});
+const useGmtInit = dateTz.value === "gmt";
+dateFields[0].value = String(
+  useGmtInit ? now.getUTCFullYear() : now.getFullYear(),
+);
+dateFields[1].value = pad2(
+  (useGmtInit ? now.getUTCMonth() : now.getMonth()) + 1,
+);
+dateFields[2].value = pad2(useGmtInit ? now.getUTCDate() : now.getDate());
+applyTimePreset("now");
 renderDateOutput();
 
 relFields.forEach((field) => {

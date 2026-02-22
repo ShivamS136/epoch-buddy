@@ -306,7 +306,7 @@ import { createCopyButton } from "../shared/clipboard.js";
     if (document.activeElement === inputEl) {
       return;
     }
-    inputEl.value = String(Math.floor(Date.now() / 1000));
+    inputEl.value = String(Math.floor(Date.now() / 1000) * 1000);
   };
 
   const stopEpochAutoRefresh = () => {
@@ -326,6 +326,56 @@ import { createCopyButton } from "../shared/clipboard.js";
   updateEpochInput();
   setInterval(updateEpochInput, 1000);
 
+  // ── Time presets ──────────────────────────────────────────────────
+
+  const presetChips = document.querySelectorAll(".preset-chip");
+
+  const setActivePreset = (preset) => {
+    presetChips.forEach((chip) => {
+      chip.classList.toggle("is-active", chip.dataset.preset === preset);
+    });
+  };
+
+  const applyTimePreset = (preset) => {
+    const useGmt = timezoneSelectEl.value === "gmt";
+    if (preset === "sod") {
+      timeHourEl.value = "00";
+      timeMinuteEl.value = "00";
+      timeSecondEl.value = "00";
+      timeMsEl.value = "000";
+    } else if (preset === "eod") {
+      timeHourEl.value = "23";
+      timeMinuteEl.value = "59";
+      timeSecondEl.value = "59";
+      timeMsEl.value = "999";
+    } else if (preset === "now") {
+      const now = new Date();
+      timeHourEl.value = pad2(useGmt ? now.getUTCHours() : now.getHours());
+      timeMinuteEl.value = pad2(
+        useGmt ? now.getUTCMinutes() : now.getMinutes(),
+      );
+      timeSecondEl.value = pad2(
+        useGmt ? now.getUTCSeconds() : now.getSeconds(),
+      );
+      timeMsEl.value = pad3(
+        useGmt ? now.getUTCMilliseconds() : now.getMilliseconds(),
+      );
+    }
+    setActivePreset(preset);
+  };
+
+  presetChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      applyTimePreset(chip.dataset.preset);
+    });
+  });
+
+  [timeHourEl, timeMinuteEl, timeSecondEl, timeMsEl].forEach((input) => {
+    input.addEventListener("input", () => {
+      setActivePreset(null);
+    });
+  });
+
   // ── Populate defaults ─────────────────────────────────────────────
 
   const populateDateTimeFields = (useGmt) => {
@@ -333,17 +383,11 @@ import { createCopyButton } from "../shared/clipboard.js";
     const year = useGmt ? now.getUTCFullYear() : now.getFullYear();
     const month = useGmt ? now.getUTCMonth() + 1 : now.getMonth() + 1;
     const day = useGmt ? now.getUTCDate() : now.getDate();
-    const hour = useGmt ? now.getUTCHours() : now.getHours();
-    const minute = useGmt ? now.getUTCMinutes() : now.getMinutes();
-    const second = useGmt ? now.getUTCSeconds() : now.getSeconds();
 
     dateYearEl.value = String(year);
     dateMonthEl.value = pad2(month);
     dateDayEl.value = pad2(day);
-    timeHourEl.value = pad2(hour);
-    timeMinuteEl.value = pad2(minute);
-    timeSecondEl.value = pad2(second);
-    timeMsEl.value = "000";
+    applyTimePreset("now");
   };
 
   const populateRelativeDefaults = () => {

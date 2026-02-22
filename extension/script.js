@@ -187,7 +187,7 @@
       };
     };
     const saveHistory = (entry) => {
-      if (!chrome?.storage?.local) {
+      if (!browser?.storage?.local) {
         return;
       }
       browser.storage.local.get({ history: [] }, (result) => {
@@ -223,12 +223,37 @@
         }
         el.appendChild(row);
       });
+      console.log(rect);
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
-      const top = rect.bottom + scrollY + 8;
-      const left = rect.left + scrollX;
-      el.style.top = `${Math.max(top, 8)}px`;
-      el.style.left = `${Math.max(left, 8)}px`;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+      const gap = 8;
+      el.style.top = "0px";
+      el.style.left = "0px";
+      el.style.visibility = "hidden";
+      const popupW = el.offsetWidth;
+      const popupH = el.offsetHeight;
+      el.style.visibility = "";
+      const fitsBelow = rect.bottom + gap + popupH <= vh;
+      const fitsAbove = rect.top - gap - popupH >= 0;
+      let top;
+      if (fitsBelow) {
+        top = rect.bottom + scrollY + gap;
+      } else if (fitsAbove) {
+        top = rect.top + scrollY - gap - popupH;
+      } else {
+        top = scrollY + Math.max(vh - popupH - gap, gap);
+      }
+      const fitsRight = rect.left + popupW <= vw;
+      let left;
+      if (fitsRight) {
+        left = rect.left + scrollX;
+      } else {
+        left = Math.max(scrollX + vw - popupW - gap, scrollX + gap);
+      }
+      el.style.top = `${Math.max(top, scrollY + gap)}px`;
+      el.style.left = `${Math.max(left, scrollX + gap)}px`;
     };
     const handleSelection = (event) => {
       if (event?.target instanceof Node && popupEl && popupEl.contains(event.target)) {
