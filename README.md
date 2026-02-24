@@ -4,8 +4,8 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
 ## Installation
 
-- [Chrome Web Store](https://chromewebstore.google.com/detail/epoch-buddy/ehjdbcbcfobnkanngnjlibodhgdbhkam)
-- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/epoch-buddy/)
+- [Chrome Web Store](https://chromewebstore.google.com/detail/epoch-buddy/ehjdbcbcfobnkanngnjlibodhgdbhkam?utm_source=github&utm_medium=referral&utm_campaign=epoch_buddy_launch&utm_content=readme)
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/epoch-buddy/?utm_source=github&utm_medium=referral&utm_campaign=epoch_buddy_launch&utm_content=readme)
 
 ## Features
 
