@@ -15,9 +15,52 @@ import {
 } from "../shared/formatting.js";
 import { parseEpoch, parseDateInput, parseTimePart } from "../shared/parsing.js";
 import { createCopyButton } from "../shared/clipboard.js";
+import {
+  loadThemeFromStorage,
+  saveThemeToStorage,
+  applyTheme,
+  updateToggleIcon,
+  updateMenuActive,
+} from "../shared/theme.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
+
+  // ── Theme ────────────────────────────────────────────────────────
+
+  const themeToggleBtn = document.getElementById("theme-toggle-btn");
+  const themeMenu = document.getElementById("theme-menu");
+
+  const setTheme = (preference) => {
+    applyTheme(preference);
+    updateToggleIcon(themeToggleBtn, preference);
+    updateMenuActive(themeMenu, preference);
+    saveThemeToStorage(preference);
+  };
+
+  loadThemeFromStorage((pref) => {
+    applyTheme(pref);
+    updateToggleIcon(themeToggleBtn, pref);
+    updateMenuActive(themeMenu, pref);
+  });
+
+  themeToggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    themeMenu.hidden = !themeMenu.hidden;
+  });
+
+  themeMenu.addEventListener("click", (e) => {
+    const option = e.target.closest("[data-theme-option]");
+    if (!option) return;
+    setTheme(option.dataset.themeOption);
+    themeMenu.hidden = true;
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!themeMenu.hidden && !e.target.closest(".theme-toggle")) {
+      themeMenu.hidden = true;
+    }
+  });
 
   // ── DOM references ────────────────────────────────────────────────
 

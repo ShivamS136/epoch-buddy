@@ -11,6 +11,11 @@ import {
 } from "../shared/formatting.js";
 import { parseEpoch } from "../shared/parsing.js";
 import { createCopyButton } from "../shared/clipboard.js";
+import {
+  loadThemeFromStorage,
+  resolveTheme,
+  onSystemThemeChange,
+} from "../shared/theme.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
@@ -20,12 +25,37 @@ import { createCopyButton } from "../shared/clipboard.js";
   /** @type {HTMLElement|null} */
   let popupEl = null;
   let lastSelectionText = "";
+  let themePref = "system";
 
   const copyBtnOpts = {
     className: "epoch-buddy-copy",
     successClass: "epoch-buddy-copy-success",
     errorClass: "epoch-buddy-copy-error",
   };
+
+  const applyPopupTheme = () => {
+    if (!popupEl) return;
+    const resolved = resolveTheme(themePref);
+    popupEl.classList.toggle("eb-dark", resolved === "dark");
+  };
+
+  loadThemeFromStorage((pref) => {
+    themePref = pref;
+    applyPopupTheme();
+  });
+
+  onSystemThemeChange(() => {
+    if (themePref === "system") applyPopupTheme();
+  });
+
+  if (browser?.storage?.onChanged) {
+    browser.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes.theme) {
+        themePref = changes.theme.newValue || "system";
+        applyPopupTheme();
+      }
+    });
+  }
 
   // ── Popup lifecycle ───────────────────────────────────────────────
 
@@ -47,6 +77,7 @@ import { createCopyButton } from "../shared/clipboard.js";
     el.setAttribute("aria-live", "polite");
     document.body.appendChild(el);
     popupEl = el;
+    applyPopupTheme();
     return el;
   };
 

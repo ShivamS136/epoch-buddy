@@ -1,10 +1,10 @@
 {
-    "name": "Epoch Buddy",
+    "name": "Epoch Buddy: Unix Timestamp & Date Converter",
     "short_name": "Epoch Buddy",
-    "description": "Convert Epoch to Human Readable Time with some extra features",
-    "version": "1.2.0",
+    "description": "Instantly convert Unix/Epoch timestamps to human-readable dates and vice-versa directly in your browser. No more copying to external sites.",
+    "version": "1.2.1",
     "manifest_version": 3,
-    "homepage_url": "https://github.com/ShivamS136/epoch-buddy",
+    "homepage_url": "https://shivams136.github.io/epoch-buddy/index.html",
     "icons": {
         "16": "icons/icon16.png",
         "32": "icons/icon32.png",

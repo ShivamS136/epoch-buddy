@@ -127,17 +127,65 @@
     return button;
   };
 
+  // src/shared/theme.js
+  var THEME_KEY = "theme";
+  var MEDIA_QUERY = "(prefers-color-scheme: dark)";
+  function getSystemTheme() {
+    return window.matchMedia(MEDIA_QUERY).matches ? "dark" : "light";
+  }
+  function resolveTheme(preference) {
+    if (preference === "dark" || preference === "light") return preference;
+    return getSystemTheme();
+  }
+  function onSystemThemeChange(callback) {
+    const mql = window.matchMedia(MEDIA_QUERY);
+    const handler = () => callback(getSystemTheme());
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }
+  function loadThemeFromStorage(callback) {
+    const browser = globalThis.browser || globalThis.chrome;
+    if (!browser?.storage?.local) {
+      callback("system");
+      return;
+    }
+    browser.storage.local.get({ [THEME_KEY]: "system" }, (result) => {
+      callback(result[THEME_KEY] || "system");
+    });
+  }
+
   // src/content/main.js
   (() => {
     const browser = globalThis.browser || globalThis.chrome;
     const POPUP_ID = "epoch-buddy-popup";
     let popupEl = null;
     let lastSelectionText = "";
+    let themePref = "system";
     const copyBtnOpts = {
       className: "epoch-buddy-copy",
       successClass: "epoch-buddy-copy-success",
       errorClass: "epoch-buddy-copy-error"
     };
+    const applyPopupTheme = () => {
+      if (!popupEl) return;
+      const resolved = resolveTheme(themePref);
+      popupEl.classList.toggle("eb-dark", resolved === "dark");
+    };
+    loadThemeFromStorage((pref) => {
+      themePref = pref;
+      applyPopupTheme();
+    });
+    onSystemThemeChange(() => {
+      if (themePref === "system") applyPopupTheme();
+    });
+    if (browser?.storage?.onChanged) {
+      browser.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes.theme) {
+          themePref = changes.theme.newValue || "system";
+          applyPopupTheme();
+        }
+      });
+    }
     const removePopup = () => {
       if (popupEl) {
         popupEl.remove();
@@ -154,6 +202,7 @@
       el.setAttribute("aria-live", "polite");
       document.body.appendChild(el);
       popupEl = el;
+      applyPopupTheme();
       return el;
     };
     const getSelectionRect = (selection) => {
