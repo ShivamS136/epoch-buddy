@@ -176,7 +176,10 @@ function pack(target) {
 
     const src = path.join(extDir, file);
     const dest = path.join(tmpDir, file);
-    fs.cpSync(src, dest, { recursive: true });
+    fs.cpSync(src, dest, {
+      recursive: true,
+      filter: (s) => !path.basename(s).startsWith("."),
+    });
   }
 
   // Patch the manifest in the temp dir for the target browser
@@ -205,7 +208,61 @@ function pack(target) {
   // Clean tmp
   fs.rmSync(tmpDir, { recursive: true, force: true });
 
-  console.log(`Packed: dist/${zipName}`);
+  const zipSize = fs.statSync(zipPath).size;
+  console.log(`Packed: dist/${zipName} (${formatBytes(zipSize)})`);
+}
+
+// ── Pack verification ────────────────────────────────────────────
+
+function verifyPack(zipPath) {
+  const listing = execSync(`unzip -l "${zipPath}"`, { encoding: "utf-8" });
+  const lines = listing.split("\n");
+  const errors = [];
+
+  for (const line of lines) {
+    const match = line.match(/\d{2}-\d{2}-\d{2,4}\s+\d{2}:\d{2}\s+(.+)$/);
+    if (!match) continue;
+    const entryPath = match[1].trim();
+    const basename = path.basename(entryPath);
+    if (basename.startsWith(".")) {
+      errors.push(`Hidden file in zip: ${entryPath}`);
+    }
+  }
+
+  return errors;
+}
+
+function verifyBuildArtifacts() {
+  const BANNED_PATTERNS = [
+    { pattern: /\.innerHTML\s*=/, label: ".innerHTML assignment" },
+  ];
+
+  const jsFiles = [
+    path.join(ROOT, "extension/index.js"),
+    path.join(ROOT, "extension/script.js"),
+  ];
+
+  const errors = [];
+
+  for (const filePath of jsFiles) {
+    if (!fs.existsSync(filePath)) continue;
+    const content = fs.readFileSync(filePath, "utf-8");
+    const name = path.relative(ROOT, filePath);
+    for (const { pattern, label } of BANNED_PATTERNS) {
+      if (pattern.test(content)) {
+        errors.push(`${name}: contains ${label}`);
+      }
+    }
+  }
+
+  return errors;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(1)} KB`;
+  return `${(kb / 1024).toFixed(2)} MB`;
 }
 
 // ── Main ────────────────────────────────────────────────────────
@@ -213,9 +270,9 @@ function pack(target) {
 await build();
 
 if (packMode) {
+  const targets = [];
   if (packTarget === null) {
-    pack("chrome");
-    pack("firefox");
+    targets.push("chrome", "firefox");
   } else {
     if (packTarget !== "chrome" && packTarget !== "firefox") {
       console.error(
@@ -223,6 +280,29 @@ if (packMode) {
       );
       process.exit(1);
     }
-    pack(packTarget);
+    targets.push(packTarget);
   }
+
+  for (const t of targets) pack(t);
+
+  // Run verification
+  console.log("\nRunning pack checks...");
+  const allErrors = [];
+
+  allErrors.push(...verifyBuildArtifacts());
+
+  for (const t of targets) {
+    const zipPath = path.join(ROOT, `dist/${t}.zip`);
+    if (fs.existsSync(zipPath)) {
+      allErrors.push(...verifyPack(zipPath));
+    }
+  }
+
+  if (allErrors.length > 0) {
+    console.error("\n PACK CHECKS FAILED:");
+    allErrors.forEach((e) => console.error(`  - ${e}`));
+    process.exit(1);
+  }
+
+  console.log("All pack checks passed.");
 }

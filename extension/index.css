@@ -51,6 +51,7 @@
     --result-bg: #1e293b;
     --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+    --copy-feedback-text: #0f172a;
   }
 }
 
@@ -77,6 +78,7 @@
   --result-bg: #1e293b;
   --shadow-card: 0 6px 16px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --copy-feedback-text: #0f172a;
 }
 
 body {
@@ -431,12 +433,12 @@ button:hover {
 
 .copy-btn.copy-success {
   background: var(--color-success);
-  color: #ffffff;
+  color: var(--copy-feedback-text, #ffffff);
 }
 
 .copy-btn.copy-error {
   background: var(--color-error);
-  color: #ffffff;
+  color: var(--copy-feedback-text, #ffffff);
 }
 
 /* Result copy buttons: right-aligned via margin */

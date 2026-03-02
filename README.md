@@ -17,7 +17,7 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
   ![epoch to date](docs/assets/screenshots/extension-1.png)
 
-- **Date to Epoch**: Enter date/time fields and get Epoch (ms), Epoch (s), and Relative time.
+- **Date to Epoch**: Enter date/time fields and get Epoch (ms), Epoch (s), and Relative time. Quick presets for start of the day, end of the day, and current time.
 
   ![date to epoch](docs/assets/screenshots/extension-2.png)
 
@@ -26,6 +26,7 @@ A browser extension that converts epoch timestamps into human-readable dates (an
   ![relative to epoch](docs/assets/screenshots/extension-3.png)
 
 - **History**: Last 10 conversions with quick copy buttons and a clear button.
+- **Dark Mode**: Supports dark mode in both the extension menu and the popup.
 
 ## Quick start
 

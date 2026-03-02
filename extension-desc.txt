@@ -1,0 +1,105 @@
+Stop copying epoch timestamps to random websites. Epoch Buddy converts Unix
+timestamps to human-readable dates instantly — right on any webpage or from the
+popup. Seconds, milliseconds, dates, relative time — all covered. Fast, private,
+and works completely offline.
+
+
+WHY DEVELOPERS LOVE EPOCH BUDDY
+
+Epoch timestamps are everywhere: server logs, monitoring dashboards, API
+responses, database records, incident timelines, Jira tickets, Datadog, Grafana,
+Kibana, Splunk, and more. Every time you see a 10-digit or 13-digit number and
+wonder "what time was that?", Epoch Buddy gives you the answer in seconds —
+without leaving your tab, without any external site, and without ever sending
+your data anywhere.
+
+
+FEATURES
+
+1) Highlight-to-Convert on Any Webpage
+Select any epoch timestamp on any website and get an instant inline popup showing:
+  - GMT / UTC time
+  - Local time in your timezone
+  - Relative time (e.g. "3 hours ago" or "in 2 days")
+  - One-click copy buttons for each value
+Works on regular text, input fields, and text areas across every website.
+
+2) Popup Converter with Three Powerful Modes
+Click the extension icon to open a clean, keyboard-friendly popup with three tabs:
+
+  A) Epoch to Date
+  Paste or type any Unix epoch value (seconds or milliseconds). The input
+  auto-fills with the current epoch and live-refreshes every second. Pause it
+  by clicking in — it resumes when you clear the field.
+  Output: Epoch (ms), GMT/UTC, Local time, Relative time.
+
+  B) Date to Epoch
+  Enter a date and time using intuitive fields (year, month, day, hour, minute,
+  second, millisecond). Switch between Local and GMT/UTC timezone. Use quick
+  presets — Start of Day, End of Day, or Current Time — to fill time fields
+  instantly.
+  Output: Epoch (ms), Epoch (s), Relative time.
+
+  C) Relative to Epoch
+  Build a timestamp relative to "now". Choose Ago or From Now, then enter any
+  combination of Days, Hours, Minutes, Seconds, and Milliseconds. Smart display
+  shows only relevant units — no clutter.
+  Output: Epoch (ms), GMT/UTC, Local time, Relative time.
+
+3) Conversion History
+Your last 10 conversions are saved locally with quick copy buttons. View them
+anytime in the History section. Clear all history with one click. Nothing is
+sent to any server — everything stays in your browser.
+
+4) Dark Mode
+Full dark mode support that follows your system preference, or set it manually
+to Light, Dark, or System. Applied across both the popup and the on-page
+conversion tooltip.
+
+5) One-Click Copy
+Every converted value comes with a copy button. Hover over any result row in the
+on-page popup or click the copy icon in the extension popup. Copies to clipboard
+instantly.
+
+
+PRIVACY & PERFORMANCE
+
+- Zero external network requests — works 100% offline
+- No accounts, no sign-ups, no logins
+- No analytics, no trackers, no telemetry
+- No data leaves your browser — ever
+- Lightweight and blazing fast
+- Open source: https://github.com/ShivamS136/epoch-buddy
+
+
+SUPPORTED INPUTS
+
+- Unix epoch in seconds (10 digits, e.g. 1714000000)
+- Unix epoch in milliseconds (13 digits, e.g. 1714000000000)
+- Commas and underscores allowed (e.g. 1,714,000,000 or 1_714_000_000)
+
+
+PERFECT FOR
+
+- Backend & frontend developers debugging timestamps
+- DevOps & SRE teams during incident response
+- Log analysis in Datadog, Grafana, Kibana, Splunk, CloudWatch
+- API development and testing (Postman, cURL, REST clients)
+- QA engineers validating timestamp fields
+- Database administrators inspecting epoch columns
+- Anyone tired of Googling "epoch to date converter"
+
+
+WORKS WITH
+
+Chrome, Edge, Brave, Arc, Opera, Vivaldi, and Firefox.
+Compatible with Manifest V3.
+
+
+WHAT'S NEW IN v1.3
+
+- Relative to Epoch converter tab
+- Time presets (Start of Day, End of Day, Now)
+- Dark mode with system preference detection
+- Improved on-page popup positioning with smart arrows
+- Conversion history with quick copy
