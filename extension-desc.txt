@@ -7,11 +7,10 @@ and works completely offline.
 WHY DEVELOPERS LOVE EPOCH BUDDY
 
 Epoch timestamps are everywhere: server logs, monitoring dashboards, API
-responses, database records, incident timelines, Jira tickets, Datadog, Grafana,
-Kibana, Splunk, and more. Every time you see a 10-digit or 13-digit number and
-wonder "what time was that?", Epoch Buddy gives you the answer in seconds —
-without leaving your tab, without any external site, and without ever sending
-your data anywhere.
+responses, database records, incident timelines, support tickets, and more.
+Every time you see a 10-digit or 13-digit number and wonder "what time was
+that?", Epoch Buddy gives you the answer in seconds — without leaving your tab,
+without any external site, and without ever sending your data anywhere.
 
 
 FEATURES
@@ -83,17 +82,11 @@ PERFECT FOR
 
 - Backend & frontend developers debugging timestamps
 - DevOps & SRE teams during incident response
-- Log analysis in Datadog, Grafana, Kibana, Splunk, CloudWatch
-- API development and testing (Postman, cURL, REST clients)
+- Log analysis in observability and monitoring tools
+- API development and testing
 - QA engineers validating timestamp fields
 - Database administrators inspecting epoch columns
 - Anyone tired of Googling "epoch to date converter"
-
-
-WORKS WITH
-
-Chrome, Edge, Brave, Arc, Opera, Vivaldi, and Firefox.
-Compatible with Manifest V3.
 
 
 WHAT'S NEW IN v1.3
