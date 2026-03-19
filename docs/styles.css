@@ -371,6 +371,7 @@ button img {
   padding: 6px;
   border-radius: 12px;
   margin-bottom: 16px;
+  font-family: inherit;
 }
 
 .demo-tab {
@@ -383,6 +384,7 @@ button img {
   font-weight: 600;
   cursor: pointer;
   color: var(--text-secondary);
+  font-family: inherit;
 }
 
 .demo-tab.is-active {
@@ -409,6 +411,18 @@ button img {
   width: 100%;
   background: var(--bg-card);
   color: var(--text-primary);
+}
+
+/* ── Number input spinners ─────────────────────────────────────── */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* ── Floating outlined fields ─────────────────────────────────── */
@@ -451,7 +465,8 @@ button img {
 }
 
 .floating-field input:focus + label,
-.floating-field input:not(:placeholder-shown) + label {
+.floating-field input:not(:placeholder-shown) + label,
+.floating-field input.has-value + label {
   top: 0;
   font-size: 10px;
   letter-spacing: 0.04em;
@@ -469,6 +484,16 @@ button img {
 
 .floating-field select:focus + label {
   color: var(--accent);
+}
+
+/* ── Field error state ────────────────────────────────────────── */
+
+.floating-field.field-error input {
+  border-color: var(--color-error);
+}
+
+.floating-field.field-error input:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
 }
 
 .input-row {
@@ -513,7 +538,7 @@ button img {
 .time-presets {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .preset-chip {
@@ -546,10 +571,99 @@ button img {
   border-color: var(--accent);
 }
 
+/* ── Copy epoch button ────────────────────────────────────────── */
+
+.copy-epoch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.copy-epoch-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.copy-epoch-btn.copy-success {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.copy-epoch-btn.copy-error {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.copy-epoch-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── ISO toggle + input ───────────────────────────────────────── */
+
+.iso-toggle-btn {
+  padding: 10px 14px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.iso-toggle-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+
+.iso-toggle-btn.is-active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.demo-date-manual-group[hidden] {
+  display: none;
+}
+
+.demo-iso-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.demo-iso-input-group[hidden] {
+  display: none;
+}
+
+.demo-iso-input-group .floating-field label {
+  top: 0;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
 .demo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 10px;
+  margin-top: 10px;
+}
+
+.demo-time-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
 }
 
 .demo-output {
@@ -560,81 +674,68 @@ button img {
   font-size: 13px;
   color: var(--text-primary);
   display: grid;
-  gap: 4px;
-  white-space: pre;
+  grid-template-columns: auto auto 1fr auto;
+  column-gap: 6px;
+  row-gap: 4px;
+  align-items: baseline;
   font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
 }
 
-.demo-output > div {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
+.demo-output > strong {
+  white-space: nowrap;
 }
 
-.hr-top {
-  margin-top: 8px;
-  padding-top: 8px;
+.demo-colon {
+  color: var(--text-muted);
+}
+
+.demo-output > span {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-separator {
+  grid-column: 1 / -1;
   border-top: 1px solid var(--border);
+  margin-top: 4px;
 }
 
 /* ── Copy button (shared across demo output and history) ────────── */
 
 .copy-btn {
-  padding: 2px 4px;
-  border-radius: 6px;
-  font-size: 8px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: var(--result-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
   cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
   box-shadow: none !important;
 }
 
 .copy-btn:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.copy-btn svg {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 .copy-btn.copy-success {
-  background: var(--color-success);
-  color: var(--copy-feedback-text, #ffffff);
+  color: var(--color-success);
 }
 
 .copy-btn.copy-error {
-  background: var(--color-error);
-  color: var(--copy-feedback-text, #ffffff);
-}
-
-/* Demo output copy buttons */
-.demo-output .copy-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.demo-output:hover .copy-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* History copy buttons */
-.history-line .copy-btn,
-.history-time .copy-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.history-item:hover .copy-btn {
-  opacity: 1;
-  pointer-events: auto;
+  color: var(--color-error);
 }
 
 /* ── History ───────────────────────────────────────────────────── */
@@ -705,23 +806,30 @@ ul.history-list {
   color: var(--text-dim);
 }
 
-.history-line {
-  position: relative;
-  display: flex;
+.history-lines {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  column-gap: 6px;
+  row-gap: 4px;
   align-items: baseline;
-  gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 12px;
-  white-space: pre;
+}
+
+.history-colon {
+  color: var(--text-muted);
 }
 
 .history-label {
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .history-value {
   color: var(--text-value);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Legal / Footer ────────────────────────────────────────────── */

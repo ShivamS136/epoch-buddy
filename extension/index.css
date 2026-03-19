@@ -93,7 +93,7 @@ body {
 }
 
 .container {
-  width: 340px;
+  width: 380px;
   padding: 8px;
 }
 
@@ -102,6 +102,8 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
 }
 
 .header-text {
@@ -116,10 +118,10 @@ body {
   font-weight: 700;
 }
 
-.header p {
-  margin: 4px 0 0;
-  font-size: 12px;
+.header-tz {
+  font-size: 11px;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .header-actions {
@@ -158,6 +160,7 @@ body {
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .tab-btn:hover {
@@ -176,6 +179,18 @@ body {
 
 .tab-panel.is-active {
   display: block;
+}
+
+/* ── Number input spinners ─────────────────────────────────────── */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* ── Floating outlined fields ─────────────────────────────────── */
@@ -226,7 +241,8 @@ body {
 }
 
 .floating-field input:focus + label,
-.floating-field input:not(:placeholder-shown) + label {
+.floating-field input:not(:placeholder-shown) + label,
+.floating-field input.has-value + label {
   top: 0;
   font-size: 9px;
   letter-spacing: 0.04em;
@@ -246,9 +262,19 @@ body {
   color: var(--accent);
 }
 
+/* ── Field error state ────────────────────────────────────────── */
+
+.floating-field.field-error input {
+  border-color: var(--color-error);
+}
+
+.floating-field.field-error input:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
 /* ── Time presets ──────────────────────────────────────────────── */
 
-.preset-row{
+.preset-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -262,7 +288,7 @@ body {
 
 .time-presets {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -270,8 +296,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   border: 1px solid var(--border-input);
   border-radius: 6px;
@@ -307,9 +333,10 @@ body {
 
 .time-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.3fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr) auto;
   gap: 8px;
   margin-bottom: 8px;
+  align-items: center;
 }
 
 .relative-grid {
@@ -322,6 +349,91 @@ body {
 .relative-grid > button[type="submit"] {
   align-self: stretch;
   font-size: 12px;
+}
+
+/* ── Copy epoch button ────────────────────────────────────────── */
+
+.copy-epoch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.copy-epoch-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.copy-epoch-btn.copy-success {
+  color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.copy-epoch-btn.copy-error {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.copy-epoch-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── ISO toggle + input ───────────────────────────────────────── */
+
+.iso-toggle-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.iso-toggle-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+}
+
+.iso-toggle-btn.is-active {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.date-manual-group[hidden] {
+  display: none;
+}
+
+.iso-input-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.iso-input-group[hidden] {
+  display: none;
+}
+
+.iso-input-group .floating-field label {
+  top: 0;
+  font-size: 9px;
+  letter-spacing: 0.04em;
 }
 
 /* ── Form elements ─────────────────────────────────────────────── */
@@ -378,94 +490,77 @@ button:hover {
   background: var(--result-bg);
   border: 1px solid var(--border);
   font-family: "JetBrains Mono",  "SF Mono",  "Consolas",  "Liberation Mono",  "Menlo",  monospace;
-}
-
-.result-row {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  column-gap: 6px;
+  row-gap: 4px;
+  align-items: baseline;
   font-size: 12px;
   line-height: 1.5;
-  white-space: pre;
-  position: relative;
 }
 
-.result-row + .result-row {
-  margin-top: 4px;
+.result[hidden] {
+  display: none;
 }
 
 .result-label {
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.result-colon {
+  color: var(--text-muted);
 }
 
 .result-value {
   color: var(--text-value);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.result-row.relative {
-  margin-top: 6px;
-  padding-top: 6px;
+.result-separator {
+  grid-column: 1 / -1;
   border-top: 1px solid var(--border);
+  margin-top: 2px;
 }
 
 /* ── Copy button (shared across result and history) ────────────── */
 
 .copy-btn {
-  padding: 2px 4px;
-  border-radius: 6px;
-  font-size: 8px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: var(--result-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
   cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
   box-shadow: none !important;
 }
 
 .copy-btn:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.copy-btn svg {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 .copy-btn.copy-success {
-  background: var(--color-success);
-  color: var(--copy-feedback-text, #ffffff);
+  color: var(--color-success);
 }
 
 .copy-btn.copy-error {
-  background: var(--color-error);
-  color: var(--copy-feedback-text, #ffffff);
-}
-
-/* Result copy buttons: right-aligned via margin */
-.result-row .copy-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.result:hover .copy-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* History copy buttons: absolutely positioned */
-.history-line .copy-btn,
-.history-time .copy-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.history-item:hover .copy-btn {
-  opacity: 1;
-  pointer-events: auto;
+  color: var(--color-error);
 }
 
 /* ── History ───────────────────────────────────────────────────── */
@@ -556,24 +651,30 @@ button:hover {
   font-variant-numeric: tabular-nums;
 }
 
-.history-line {
-  position: relative;
-  display: flex;
+.history-lines {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  column-gap: 6px;
+  row-gap: 4px;
   align-items: baseline;
-  gap: 6px;
   margin-top: 6px;
   font-size: 12px;
-  white-space: pre;
+}
+
+.history-colon {
+  color: var(--text-muted);
 }
 
 .history-label {
   font-weight: 700;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .history-value {
   color: var(--text-value);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .empty-state {

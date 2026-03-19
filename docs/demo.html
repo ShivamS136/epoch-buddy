@@ -125,6 +125,9 @@
                   <input id="demo-epoch-input" type="text" placeholder=" " />
                   <label for="demo-epoch-input">Epoch</label>
                 </div>
+                <button type="button" id="demo-copy-epoch-btn" class="copy-epoch-btn" title="Copy current timestamp (ms)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
                 <button id="demo-epoch-submit" class="demo-action" type="button">
                   Convert
                 </button>
@@ -132,65 +135,82 @@
               <div class="hint">
                 <small>Seconds (10) or milliseconds (13)</small>
               </div>
-              <div class="demo-error" id="demo-epoch-error"></div>
+              <div class="demo-error" id="demo-epoch-error" hidden></div>
               <div class="demo-output" id="demo-epoch-output"></div>
             </div>
 
             <div class="demo-panel" data-panel="demo-date">
-              <div class="demo-grid">
-                <div class="floating-field">
-                  <select id="demo-date-tz">
-                    <option value="local">Local</option>
-                    <option value="gmt">GMT</option>
-                  </select>
-                  <label for="demo-date-tz">Timezone</label>
+              <div class="demo-date-manual-group">
+                <div class="demo-grid demo-date-grid">
+                  <div class="floating-field">
+                    <select id="demo-date-tz">
+                      <option value="local">Local</option>
+                      <option value="utc">UTC</option>
+                    </select>
+                    <label for="demo-date-tz">Timezone</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-year" type="number" min="1" placeholder=" " />
+                    <label for="demo-year">Year</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-month" type="number" min="1" max="12" placeholder=" " />
+                    <label for="demo-month">Month</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-day" type="number" min="1" max="31" placeholder=" " />
+                    <label for="demo-day">Day</label>
+                  </div>
                 </div>
-                <div class="floating-field">
-                  <input id="demo-year" placeholder=" " />
-                  <label for="demo-year">Year</label>
-                </div>
-                <div class="floating-field">
-                  <input id="demo-month" placeholder=" " />
-                  <label for="demo-month">Month</label>
-                </div>
-                <div class="floating-field">
-                  <input id="demo-day" placeholder=" " />
-                  <label for="demo-day">Day</label>
+                <div class="demo-grid demo-time-grid">
+                  <div class="floating-field">
+                    <input id="demo-hour" type="number" min="0" max="23" placeholder=" " />
+                    <label for="demo-hour">Hour</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-minute" type="number" min="0" max="59" placeholder=" " />
+                    <label for="demo-minute">Min</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-second" type="number" min="0" max="59" placeholder=" " />
+                    <label for="demo-second">Sec</label>
+                  </div>
+                  <div class="floating-field">
+                    <input id="demo-ms" type="number" min="0" max="999" placeholder=" " />
+                    <label for="demo-ms">Ms</label>
+                  </div>
+                  <div class="time-presets" role="group" aria-label="Time presets">
+                    <button type="button" class="preset-chip" data-preset="now" title="Current time">
+                      <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
+                    </button>
+                    <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
+                      <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
+                    </button>
+                    <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
+                      <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="demo-grid">
-                <div class="floating-field">
-                  <input id="demo-hour" placeholder=" " />
-                  <label for="demo-hour">Hour</label>
+              <div class="demo-iso-input-group" hidden>
+                <div class="floating-field" style="flex:1">
+                  <input id="demo-iso-input" type="text" placeholder="YYYY-MM-DDTHH:mm:ss.sssZ" autocomplete="off" />
+                  <label for="demo-iso-input">ISO 8601 String</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-minute" placeholder=" " />
-                  <label for="demo-minute">Min</label>
-                </div>
-                <div class="floating-field">
-                  <input id="demo-second" placeholder=" " />
-                  <label for="demo-second">Sec</label>
-                </div>
-                <div class="floating-field">
-                  <input id="demo-ms" placeholder=" " />
-                  <label for="demo-ms">Ms</label>
+                  <select id="demo-iso-tz-select">
+                    <option value="auto">Auto (from string)</option>
+                    <option value="local">Local</option>
+                    <option value="utc">UTC</option>
+                  </select>
+                  <label for="demo-iso-tz-select">Fallback TZ</label>
                 </div>
               </div>
               <div class="preset-row">
-                <div class="time-presets" role="group" aria-label="Time presets">
-                  <button type="button" class="preset-chip" data-preset="now" title="Current time">
-                    <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
-                  </button>
-                  <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
-                    <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
-                  </button>
-                  <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
-                    <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
-                  </button>
-                </div>
+                <button type="button" id="demo-iso-toggle-btn" class="iso-toggle-btn" title="Switch to ISO string input">Convert ISO String</button>
                 <button id="demo-date-submit" class="demo-action" type="button">Convert</button>
               </div>
-              <div class="demo-error" id="demo-date-error"></div>
+              <div class="demo-error" id="demo-date-error" hidden></div>
               <div class="demo-output" id="demo-date-output"></div>
             </div>
 
@@ -204,30 +224,30 @@
                   <label for="demo-rel-dir">Direction</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-days" placeholder=" " />
+                  <input id="demo-rel-days" type="number" min="0" placeholder=" " />
                   <label for="demo-rel-days">Days</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-hours" placeholder=" " />
+                  <input id="demo-rel-hours" type="number" min="0" placeholder=" " />
                   <label for="demo-rel-hours">Hours</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-minutes" placeholder=" " />
+                  <input id="demo-rel-minutes" type="number" min="0" placeholder=" " />
                   <label for="demo-rel-minutes">Min</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-seconds" placeholder=" " />
+                  <input id="demo-rel-seconds" type="number" min="0" placeholder=" " />
                   <label for="demo-rel-seconds">Sec</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-ms" placeholder=" " />
+                  <input id="demo-rel-ms" type="number" min="0" placeholder=" " />
                   <label for="demo-rel-ms">Ms</label>
                 </div>
                 <button id="demo-relative-submit" class="demo-action" type="button" style="grid-column: span 2">
                   Convert
                 </button>
               </div>
-              <div class="demo-error" id="demo-relative-error"></div>
+              <div class="demo-error" id="demo-relative-error" hidden></div>
               <div class="demo-output" id="demo-relative-output"></div>
             </div>
           </div>
@@ -236,7 +256,7 @@
             <h3>What you’re seeing</h3>
             <p>
               The demo widget uses the same formatting as the extension:
-              GMT/Local timestamps, epoch seconds and milliseconds, plus
+              UTC/Local timestamps, epoch seconds and milliseconds, plus
               relative time.
             </p>
             <img src="assets/screenshots/popup.png" alt="Epoch Buddy popup" />

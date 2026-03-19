@@ -18,7 +18,7 @@
       seconds: pad2(seconds)
     };
   };
-  var formatGmtTimestamp = (date) => {
+  var formatUtcTimestamp = (date) => {
     const year = date.getUTCFullYear();
     const month = pad2(date.getUTCMonth() + 1);
     const day = pad2(date.getUTCDate());
@@ -94,12 +94,14 @@
   var buildConversionData = (epochMs) => {
     const date = new Date(epochMs);
     return {
-      gmt: formatGmtTimestamp(date),
+      epochS: String(Math.floor(epochMs / 1e3)),
+      utc: formatUtcTimestamp(date),
+      localTimestamp: formatLocalTimestamp(date),
+      tzLabel: formatTimeZoneOffset(date, true),
       local: `${formatLocalTimestamp(date)} (${formatTimeZoneOffset(date, true)})`,
       relative: formatRelative(epochMs)
     };
   };
-  var stripTimezoneSuffix = (value) => value.replace(/\s\([+-]\d{2}:\d{2}\)$/, "");
   var formatTimeOnly = (isoString) => {
     if (!isoString) {
       return "--:--:--";
@@ -122,16 +124,40 @@
     }
     return null;
   };
+  var parseDateField = (value, label, min, max) => {
+    const trimmed = String(value).trim();
+    if (trimmed === "") {
+      return { error: `${label} is required.`, field: label.toLowerCase() };
+    }
+    const number = Number(trimmed);
+    if (Number.isNaN(number) || !Number.isFinite(number)) {
+      return {
+        error: `${label} must be a valid number.`,
+        field: label.toLowerCase()
+      };
+    }
+    if (number < min || max !== void 0 && number > max) {
+      const range = max !== void 0 ? `${min}\u2013${max}` : `>= ${min}`;
+      return {
+        error: `${label} must be ${range}.`,
+        field: label.toLowerCase()
+      };
+    }
+    return { value: Math.floor(number) };
+  };
   var parseDateInput = (yearValue, monthValue, dayValue) => {
     if (!yearValue || !monthValue || !dayValue) {
       return null;
     }
-    if (!/^\d+$/.test(yearValue + monthValue + dayValue)) {
+    const yStr = String(yearValue);
+    const mStr = String(monthValue);
+    const dStr = String(dayValue);
+    if (!/^\d+$/.test(yStr + mStr + dStr)) {
       return null;
     }
-    const year = Number(yearValue);
-    const month = Number(monthValue);
-    const day = Number(dayValue);
+    const year = Number(yStr);
+    const month = Number(mStr);
+    const day = Number(dStr);
     const date = new Date(year, month - 1, day);
     if (Number.isNaN(date.getTime()) || date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
       return null;
@@ -139,21 +165,53 @@
     return { year, month, day };
   };
   var parseTimePart = (value, max, label) => {
-    const trimmed = value.trim();
+    const trimmed = String(value).trim();
     if (trimmed === "") {
       return { value: 0 };
     }
-    if (!/^\d+$/.test(trimmed)) {
+    const number = Number(trimmed);
+    if (Number.isNaN(number) || !Number.isFinite(number)) {
       return { error: `${label} must be numeric.` };
     }
-    const number = Number(trimmed);
     if (number < 0 || number > max) {
       return { error: `${label} must be between 0 and ${max}.` };
     }
-    return { value: number };
+    return { value: Math.floor(number) };
+  };
+  var parseIsoString = (isoStr, fallbackTz) => {
+    const trimmed = isoStr.trim();
+    if (!trimmed) {
+      return { error: "ISO string is required." };
+    }
+    const hasOffset = /[Zz]$/.test(trimmed) || /[+-]\d{2}:\d{2}$/.test(trimmed) || /[+-]\d{4}$/.test(trimmed);
+    let dateStr = trimmed;
+    if (!hasOffset && fallbackTz === "utc") {
+      dateStr = trimmed + "Z";
+    }
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) {
+      return { error: "Invalid ISO 8601 string." };
+    }
+    return { value: date.getTime() };
+  };
+  var normalizeRelativeFields = (days, hours, minutes, seconds, ms) => {
+    let totalMs = (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1e3 + ms | 0;
+    if (totalMs < 0) totalMs = 0;
+    const nMs = totalMs % 1e3;
+    let rem = (totalMs - nMs) / 1e3;
+    const nSec = rem % 60;
+    rem = (rem - nSec) / 60;
+    const nMin = rem % 60;
+    rem = (rem - nMin) / 60;
+    const nHr = rem % 24;
+    const nDay = (rem - nHr) / 24;
+    return { days: nDay, hours: nHr, minutes: nMin, seconds: nSec, ms: nMs };
   };
 
   // src/shared/clipboard.js
+  var ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var ICON_ERROR = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   var createCopyButton = (value, {
     className = "copy-btn",
     successClass = "copy-success",
@@ -162,9 +220,10 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = className;
-    button.textContent = "copy";
+    button.innerHTML = ICON_COPY;
+    button.setAttribute("aria-label", "Copy");
     const resetButton = () => {
-      button.textContent = "copy";
+      button.innerHTML = ICON_COPY;
       button.classList.remove(successClass, errorClass);
     };
     button.addEventListener("click", async (event) => {
@@ -172,17 +231,45 @@
       event.stopPropagation();
       try {
         await navigator.clipboard.writeText(String(value));
-        button.textContent = "copied";
+        button.innerHTML = ICON_CHECK;
         button.classList.remove(errorClass);
         button.classList.add(successClass);
       } catch (_err) {
-        button.textContent = "error";
+        button.innerHTML = ICON_ERROR;
         button.classList.remove(successClass);
         button.classList.add(errorClass);
       }
       window.setTimeout(resetButton, 1400);
     });
     return button;
+  };
+  var bindLiveCopyButton = (button, valueFn, {
+    successClass = "copy-success",
+    errorClass = "copy-error",
+    onCopy
+  } = {}) => {
+    const ICON_CLOCK = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    const resetButton = () => {
+      button.innerHTML = ICON_CLOCK;
+      button.classList.remove(successClass, errorClass);
+    };
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const val = String(valueFn());
+      try {
+        await navigator.clipboard.writeText(val);
+        if (onCopy) onCopy(val);
+        button.innerHTML = ICON_CHECK;
+        button.classList.remove(errorClass);
+        button.classList.add(successClass);
+      } catch (_err) {
+        button.innerHTML = ICON_ERROR;
+        button.classList.remove(successClass);
+        button.classList.add(errorClass);
+      }
+      window.setTimeout(resetButton, 1400);
+    });
   };
 
   // src/shared/theme.js
@@ -302,10 +389,15 @@
         themeMenu.hidden = true;
       }
     });
+    const headerTzEl = document.getElementById("header-tz");
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const offset = formatTimeZoneOffset(/* @__PURE__ */ new Date(), true);
+    headerTzEl.textContent = `${tz} (UTC${offset})`;
     const epochFormEl = document.getElementById("epoch-to-date-form");
     const dateFormEl = document.getElementById("date-to-epoch-form");
     const relativeFormEl = document.getElementById("relative-form");
     const inputEl = document.getElementById("epoch-input");
+    const copyEpochBtn = document.getElementById("copy-epoch-btn");
     const dateYearEl = document.getElementById("date-year");
     const dateMonthEl = document.getElementById("date-month");
     const dateDayEl = document.getElementById("date-day");
@@ -331,6 +423,96 @@
     const relativeMinutesEl = document.getElementById("relative-minutes");
     const relativeSecondsEl = document.getElementById("relative-seconds");
     const relativeMsEl = document.getElementById("relative-ms");
+    const isoToggleBtn = document.getElementById("iso-toggle-btn");
+    const dateManualGroup = dateFormEl.querySelector(".date-manual-group");
+    const isoInputGroup = dateFormEl.querySelector(".iso-input-group");
+    const isoInputEl = document.getElementById("iso-input");
+    const isoTzSelectEl = document.getElementById("iso-tz-select");
+    const syncHasValue = (input) => {
+      input.classList.toggle("has-value", input.value !== "");
+    };
+    const allNumberInputs = dateFormEl.querySelectorAll('input[type="number"]');
+    const relNumberInputs = relativeFormEl.querySelectorAll('input[type="number"]');
+    [...allNumberInputs, ...relNumberInputs].forEach((input) => {
+      input.addEventListener("input", () => syncHasValue(input));
+      input.addEventListener("blur", () => syncHasValue(input));
+      syncHasValue(input);
+    });
+    const clearFieldErrors = (form) => {
+      form.querySelectorAll(".field-error").forEach((el) => {
+        el.classList.remove("field-error");
+      });
+    };
+    const setFieldError = (input) => {
+      const wrapper = input.closest(".floating-field");
+      if (wrapper) wrapper.classList.add("field-error");
+    };
+    const clearFieldError = (input) => {
+      const wrapper = input.closest(".floating-field");
+      if (wrapper) wrapper.classList.remove("field-error");
+    };
+    const dateFields = [dateYearEl, dateMonthEl, dateDayEl];
+    const timeFields = [timeHourEl, timeMinuteEl, timeSecondEl, timeMsEl];
+    const relFields = [
+      relativeDaysEl,
+      relativeHoursEl,
+      relativeMinutesEl,
+      relativeSecondsEl,
+      relativeMsEl
+    ];
+    const dateFieldLabels = ["Year", "Month", "Day"];
+    dateFields.forEach((input, i) => {
+      input.addEventListener("blur", () => {
+        syncHasValue(input);
+        if (input.value.trim() === "") {
+          setFieldError(input);
+          dateErrorEl.hidden = false;
+          dateErrorEl.textContent = `${dateFieldLabels[i]} is required.`;
+        } else {
+          clearFieldError(input);
+        }
+      });
+      input.addEventListener("input", () => {
+        clearFieldError(input);
+        dateErrorEl.hidden = true;
+        dateErrorEl.textContent = "";
+      });
+    });
+    timeFields.forEach((input) => {
+      input.addEventListener("blur", () => {
+        if (input.value.trim() === "" || Number.isNaN(Number(input.value))) {
+          input.value = 0;
+        }
+        syncHasValue(input);
+      });
+    });
+    relFields.forEach((input) => {
+      input.addEventListener("blur", () => {
+        if (input.value.trim() === "" || Number.isNaN(Number(input.value))) {
+          input.value = 0;
+        }
+        syncHasValue(input);
+      });
+    });
+    const normalizeRelativeInputs = () => {
+      const d = Number(relativeDaysEl.value) || 0;
+      const h = Number(relativeHoursEl.value) || 0;
+      const m = Number(relativeMinutesEl.value) || 0;
+      const s = Number(relativeSecondsEl.value) || 0;
+      const ms = Number(relativeMsEl.value) || 0;
+      if (h > 23 || m > 59 || s > 59 || ms > 999) {
+        const n = normalizeRelativeFields(d, h, m, s, ms);
+        relativeDaysEl.value = n.days;
+        relativeHoursEl.value = n.hours;
+        relativeMinutesEl.value = n.minutes;
+        relativeSecondsEl.value = n.seconds;
+        relativeMsEl.value = n.ms;
+        relFields.forEach(syncHasValue);
+      }
+    };
+    relFields.forEach((input) => {
+      input.addEventListener("blur", normalizeRelativeInputs);
+    });
     const saveHistory = (entry) => {
       if (!chrome?.storage?.local) {
         return;
@@ -362,39 +544,39 @@
       });
     };
     const appendResultRow = (targetEl, row) => {
-      const rowEl = document.createElement("div");
-      rowEl.className = "result-row";
       if (row.isRelative) {
-        rowEl.classList.add("relative");
-      }
-      let afterLabelText = "";
-      if (row.label === "GMT") {
-        afterLabelText = "  ";
-      } else if (row.label === "Epoch (s)") {
-        afterLabelText = " ";
+        const sep = document.createElement("div");
+        sep.className = "result-separator";
+        targetEl.appendChild(sep);
       }
       const labelEl = document.createElement("strong");
       labelEl.className = "result-label";
-      labelEl.textContent = `${row.label}${afterLabelText}: `;
-      rowEl.appendChild(labelEl);
+      labelEl.textContent = row.label;
+      targetEl.appendChild(labelEl);
+      const colonEl = document.createElement("span");
+      colonEl.className = "result-colon";
+      colonEl.textContent = ":";
+      targetEl.appendChild(colonEl);
       const valueEl = document.createElement("span");
       valueEl.className = "result-value";
-      valueEl.textContent = `${row.value}`;
-      rowEl.appendChild(valueEl);
+      valueEl.textContent = row.value;
+      targetEl.appendChild(valueEl);
       if (row.copy) {
-        rowEl.appendChild(createCopyButton(row.copy));
+        targetEl.appendChild(createCopyButton(row.copy));
+      } else {
+        targetEl.appendChild(document.createElement("span"));
       }
-      targetEl.appendChild(rowEl);
     };
     const renderEpochToDateResult = (epochMs, conversion) => {
       resultEl.replaceChildren ? resultEl.replaceChildren() : resultEl.textContent = "";
       const rows = [
+        { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
         { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-        { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
+        { label: "UTC", value: conversion.utc, copy: conversion.utc },
         {
-          label: "Local",
-          value: conversion.local,
-          copy: stripTimezoneSuffix(conversion.local)
+          label: `Local (${conversion.tzLabel})`,
+          value: conversion.localTimestamp,
+          copy: conversion.localTimestamp
         },
         { label: "Relative", value: conversion.relative, isRelative: true }
       ];
@@ -404,11 +586,13 @@
     const renderDateToEpochResult = (epochMs, conversion) => {
       dateResultEl.replaceChildren ? dateResultEl.replaceChildren() : dateResultEl.textContent = "";
       const rows = [
+        { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
         { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
+        { label: "UTC", value: conversion.utc, copy: conversion.utc },
         {
-          label: "Epoch (s)",
-          value: String(Math.floor(epochMs / 1e3)),
-          copy: String(Math.floor(epochMs / 1e3))
+          label: `Local (${conversion.tzLabel})`,
+          value: conversion.localTimestamp,
+          copy: conversion.localTimestamp
         },
         { label: "Relative", value: conversion.relative, isRelative: true }
       ];
@@ -418,12 +602,13 @@
     const renderRelativeResult = (epochMs, conversion, relativeLabel) => {
       relativeResultEl.replaceChildren ? relativeResultEl.replaceChildren() : relativeResultEl.textContent = "";
       const rows = [
+        { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
         { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-        { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
+        { label: "UTC", value: conversion.utc, copy: conversion.utc },
         {
-          label: "Local",
-          value: conversion.local,
-          copy: stripTimezoneSuffix(conversion.local)
+          label: `Local (${conversion.tzLabel})`,
+          value: conversion.localTimestamp,
+          copy: conversion.localTimestamp
         },
         { label: "Relative", value: relativeLabel, isRelative: true }
       ];
@@ -460,53 +645,42 @@
         timeWrapper.appendChild(epochCopy);
         topRow.appendChild(epochSpan);
         topRow.appendChild(timeWrapper);
+        item.appendChild(topRow);
+        const conversion = buildConversionData(entry.epochMs);
+        const linesGrid = document.createElement("div");
+        linesGrid.className = "history-lines";
         const addHistoryLine = (label, value, copyValue) => {
-          const row = document.createElement("div");
-          row.className = "history-line";
-          let afterLabelText = "";
-          if (label === "GMT") {
-            afterLabelText = "  ";
-          } else if (label === "Epoch (s)") {
-            afterLabelText = " ";
-          }
           const rowLabel = document.createElement("span");
           rowLabel.className = "history-label";
-          rowLabel.textContent = `${label}${afterLabelText}:`;
+          rowLabel.textContent = label;
+          linesGrid.appendChild(rowLabel);
+          const colonEl = document.createElement("span");
+          colonEl.className = "history-colon";
+          colonEl.textContent = ":";
+          linesGrid.appendChild(colonEl);
           const rowValue = document.createElement("span");
           rowValue.className = "history-value";
           rowValue.textContent = value || "";
-          row.appendChild(rowLabel);
-          row.appendChild(rowValue);
+          linesGrid.appendChild(rowValue);
           if (copyValue) {
-            row.appendChild(createCopyButton(copyValue));
+            linesGrid.appendChild(createCopyButton(copyValue));
+          } else {
+            linesGrid.appendChild(document.createElement("span"));
           }
-          item.appendChild(row);
         };
-        item.appendChild(topRow);
-        if (entry.source === "date") {
-          addHistoryLine(
-            "Epoch (ms)",
-            String(entry.epochMs),
-            String(entry.epochMs)
-          );
-          addHistoryLine(
-            "Epoch (s)",
-            String(Math.floor(entry.epochMs / 1e3)),
-            String(Math.floor(entry.epochMs / 1e3))
-          );
-        } else {
-          addHistoryLine(
-            "Epoch (ms)",
-            String(entry.epochMs),
-            String(entry.epochMs)
-          );
-          addHistoryLine("GMT", entry.gmt || "", entry.gmt || "");
-          addHistoryLine(
-            "Local",
-            entry.local || "",
-            stripTimezoneSuffix(entry.local || "")
-          );
-        }
+        addHistoryLine("Epoch (s)", conversion.epochS, conversion.epochS);
+        addHistoryLine(
+          "Epoch (ms)",
+          String(entry.epochMs),
+          String(entry.epochMs)
+        );
+        addHistoryLine("UTC", conversion.utc, conversion.utc);
+        addHistoryLine(
+          `Local (${conversion.tzLabel})`,
+          conversion.localTimestamp,
+          conversion.localTimestamp
+        );
+        item.appendChild(linesGrid);
         historyListEl.appendChild(item);
       });
     };
@@ -525,24 +699,6 @@
     });
     clearHistoryEl.addEventListener("click", () => {
       clearHistory();
-    });
-    [
-      dateYearEl,
-      dateMonthEl,
-      dateDayEl,
-      timeHourEl,
-      timeMinuteEl,
-      timeSecondEl,
-      timeMsEl,
-      relativeDaysEl,
-      relativeHoursEl,
-      relativeMinutesEl,
-      relativeSecondsEl,
-      relativeMsEl
-    ].forEach((input) => {
-      input.addEventListener("input", () => {
-        input.value = input.value.replace(/\D/g, "");
-      });
     });
     let epochAutoRefreshActive = true;
     const updateEpochInput = () => {
@@ -568,6 +724,12 @@
     inputEl.addEventListener("blur", maybeResumeEpochAutoRefresh);
     updateEpochInput();
     setInterval(updateEpochInput, 1e3);
+    bindLiveCopyButton(copyEpochBtn, () => String(Date.now()), {
+      onCopy: (val) => {
+        inputEl.value = val;
+        stopEpochAutoRefresh();
+      }
+    });
     const presetChips = document.querySelectorAll(".preset-chip");
     const setActivePreset = (preset) => {
       presetChips.forEach((chip) => {
@@ -575,30 +737,25 @@
       });
     };
     const applyTimePreset = (preset) => {
-      const useGmt = timezoneSelectEl.value === "gmt";
+      const useUtc = timezoneSelectEl.value === "utc";
       if (preset === "sod") {
-        timeHourEl.value = "00";
-        timeMinuteEl.value = "00";
-        timeSecondEl.value = "00";
-        timeMsEl.value = "000";
+        timeHourEl.value = 0;
+        timeMinuteEl.value = 0;
+        timeSecondEl.value = 0;
+        timeMsEl.value = 0;
       } else if (preset === "eod") {
-        timeHourEl.value = "23";
-        timeMinuteEl.value = "59";
-        timeSecondEl.value = "59";
-        timeMsEl.value = "999";
+        timeHourEl.value = 23;
+        timeMinuteEl.value = 59;
+        timeSecondEl.value = 59;
+        timeMsEl.value = 999;
       } else if (preset === "now") {
         const now = /* @__PURE__ */ new Date();
-        timeHourEl.value = pad2(useGmt ? now.getUTCHours() : now.getHours());
-        timeMinuteEl.value = pad2(
-          useGmt ? now.getUTCMinutes() : now.getMinutes()
-        );
-        timeSecondEl.value = pad2(
-          useGmt ? now.getUTCSeconds() : now.getSeconds()
-        );
-        timeMsEl.value = pad3(
-          useGmt ? now.getUTCMilliseconds() : now.getMilliseconds()
-        );
+        timeHourEl.value = useUtc ? now.getUTCHours() : now.getHours();
+        timeMinuteEl.value = useUtc ? now.getUTCMinutes() : now.getMinutes();
+        timeSecondEl.value = useUtc ? now.getUTCSeconds() : now.getSeconds();
+        timeMsEl.value = useUtc ? now.getUTCMilliseconds() : now.getMilliseconds();
       }
+      timeFields.forEach(syncHasValue);
       setActivePreset(preset);
     };
     presetChips.forEach((chip) => {
@@ -606,27 +763,62 @@
         applyTimePreset(chip.dataset.preset);
       });
     });
-    [timeHourEl, timeMinuteEl, timeSecondEl, timeMsEl].forEach((input) => {
+    timeFields.forEach((input) => {
       input.addEventListener("input", () => {
         setActivePreset(null);
       });
     });
-    const populateDateTimeFields = (useGmt) => {
+    let dateIsoMode = false;
+    isoToggleBtn.addEventListener("click", () => {
+      dateIsoMode = !dateIsoMode;
+      isoToggleBtn.classList.toggle("is-active", dateIsoMode);
+      isoToggleBtn.textContent = dateIsoMode ? "Enter Date Manually" : "Convert ISO String";
+      dateManualGroup.hidden = dateIsoMode;
+      isoInputGroup.hidden = !dateIsoMode;
+      if (dateIsoMode) {
+        isoInputEl.value = (/* @__PURE__ */ new Date()).toISOString();
+      }
+      dateErrorEl.hidden = true;
+      dateErrorEl.textContent = "";
+      clearFieldErrors(dateFormEl);
+    });
+    isoInputEl.addEventListener("blur", () => {
+      const val = isoInputEl.value.trim();
+      if (!val) return;
+      const result = parseIsoString(val, isoTzSelectEl.value);
+      if (result.error) {
+        setFieldError(isoInputEl);
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = result.error;
+      } else {
+        clearFieldError(isoInputEl);
+        dateErrorEl.hidden = true;
+        dateErrorEl.textContent = "";
+      }
+    });
+    isoInputEl.addEventListener("input", () => {
+      clearFieldError(isoInputEl);
+      dateErrorEl.hidden = true;
+      dateErrorEl.textContent = "";
+    });
+    const populateDateTimeFields = (useUtc) => {
       const now = /* @__PURE__ */ new Date();
-      const year = useGmt ? now.getUTCFullYear() : now.getFullYear();
-      const month = useGmt ? now.getUTCMonth() + 1 : now.getMonth() + 1;
-      const day = useGmt ? now.getUTCDate() : now.getDate();
-      dateYearEl.value = String(year);
-      dateMonthEl.value = pad2(month);
-      dateDayEl.value = pad2(day);
+      const year = useUtc ? now.getUTCFullYear() : now.getFullYear();
+      const month = useUtc ? now.getUTCMonth() + 1 : now.getMonth() + 1;
+      const day = useUtc ? now.getUTCDate() : now.getDate();
+      dateYearEl.value = year;
+      dateMonthEl.value = month;
+      dateDayEl.value = day;
       applyTimePreset("now");
+      [...dateFields, ...timeFields].forEach(syncHasValue);
     };
     const populateRelativeDefaults = () => {
-      relativeDaysEl.value = "0";
-      relativeHoursEl.value = "0";
-      relativeMinutesEl.value = "0";
-      relativeSecondsEl.value = "0";
-      relativeMsEl.value = "0";
+      relativeDaysEl.value = 0;
+      relativeHoursEl.value = 0;
+      relativeMinutesEl.value = 0;
+      relativeSecondsEl.value = 0;
+      relativeMsEl.value = 0;
+      relFields.forEach(syncHasValue);
     };
     epochFormEl.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -646,9 +838,6 @@
         source: "epoch",
         input: inputValue,
         epochMs,
-        gmt: conversion.gmt,
-        local: conversion.local,
-        relative: conversion.relative,
         convertedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
     });
@@ -656,10 +845,54 @@
       event.preventDefault();
       dateErrorEl.textContent = "";
       dateErrorEl.hidden = true;
+      clearFieldErrors(dateFormEl);
+      if (dateIsoMode) {
+        const result = parseIsoString(isoInputEl.value, isoTzSelectEl.value);
+        if (result.error) {
+          dateResultEl.hidden = true;
+          dateErrorEl.hidden = false;
+          dateErrorEl.textContent = result.error;
+          return;
+        }
+        const epochMs2 = result.value;
+        const conversion2 = buildConversionData(epochMs2);
+        renderDateToEpochResult(epochMs2, conversion2);
+        saveHistory({
+          source: "iso",
+          input: isoInputEl.value.trim(),
+          epochMs: epochMs2,
+          convertedAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+        return;
+      }
+      const yearResult = parseDateField(dateYearEl.value, "Year", 1);
+      if (yearResult.error) {
+        setFieldError(dateYearEl);
+        dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = yearResult.error;
+        return;
+      }
+      const monthResult = parseDateField(dateMonthEl.value, "Month", 1, 12);
+      if (monthResult.error) {
+        setFieldError(dateMonthEl);
+        dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = monthResult.error;
+        return;
+      }
+      const dayResult = parseDateField(dateDayEl.value, "Day", 1, 31);
+      if (dayResult.error) {
+        setFieldError(dateDayEl);
+        dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = dayResult.error;
+        return;
+      }
       const dateParts = parseDateInput(
-        dateYearEl.value.trim(),
-        dateMonthEl.value.trim(),
-        dateDayEl.value.trim()
+        yearResult.value,
+        monthResult.value,
+        dayResult.value
       );
       if (!dateParts) {
         dateResultEl.hidden = true;
@@ -669,30 +902,38 @@
       }
       const hour = parseTimePart(timeHourEl.value, 23, "Hour");
       if (hour.error) {
+        setFieldError(timeHourEl);
         dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
         dateErrorEl.textContent = hour.error;
         return;
       }
       const minute = parseTimePart(timeMinuteEl.value, 59, "Minute");
       if (minute.error) {
+        setFieldError(timeMinuteEl);
         dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
         dateErrorEl.textContent = minute.error;
         return;
       }
       const second = parseTimePart(timeSecondEl.value, 59, "Second");
       if (second.error) {
+        setFieldError(timeSecondEl);
         dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
         dateErrorEl.textContent = second.error;
         return;
       }
       const ms = parseTimePart(timeMsEl.value, 999, "Milliseconds");
       if (ms.error) {
+        setFieldError(timeMsEl);
         dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
         dateErrorEl.textContent = ms.error;
         return;
       }
-      const useGmt = timezoneSelectEl.value === "gmt";
-      const epochMs = useGmt ? Date.UTC(
+      const useUtc = timezoneSelectEl.value === "utc";
+      const epochMs = useUtc ? Date.UTC(
         dateParts.year,
         dateParts.month - 1,
         dateParts.day,
@@ -715,14 +956,11 @@
         dateParts.day
       )} ${pad2(hour.value)}:${pad2(minute.value)}:${pad2(second.value)}.${pad3(
         ms.value
-      )} ${useGmt ? "GMT" : "Local"}`;
+      )} ${useUtc ? "UTC" : "Local"}`;
       saveHistory({
         source: "date",
         input: dateLabel,
         epochMs,
-        gmt: conversion.gmt,
-        local: conversion.local,
-        relative: conversion.relative,
         convertedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
     });
@@ -740,24 +978,28 @@
       const hours = parseTimePart(relativeHoursEl.value, 23, "Hours");
       if (hours.error) {
         relativeResultEl.hidden = true;
+        relativeErrorEl.hidden = false;
         relativeErrorEl.textContent = hours.error;
         return;
       }
       const minutes = parseTimePart(relativeMinutesEl.value, 59, "Minutes");
       if (minutes.error) {
         relativeResultEl.hidden = true;
+        relativeErrorEl.hidden = false;
         relativeErrorEl.textContent = minutes.error;
         return;
       }
       const seconds = parseTimePart(relativeSecondsEl.value, 59, "Seconds");
       if (seconds.error) {
         relativeResultEl.hidden = true;
+        relativeErrorEl.hidden = false;
         relativeErrorEl.textContent = seconds.error;
         return;
       }
       const ms = parseTimePart(relativeMsEl.value, 999, "Milliseconds");
       if (ms.error) {
         relativeResultEl.hidden = true;
+        relativeErrorEl.hidden = false;
         relativeErrorEl.textContent = ms.error;
         return;
       }
@@ -780,11 +1022,7 @@
       saveHistory({
         source: "relative",
         display: relativeLabel,
-        input: relativeLabel,
         epochMs,
-        gmt: conversion.gmt,
-        local: conversion.local,
-        relative: conversion.relative,
         convertedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
     });

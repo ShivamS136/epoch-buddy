@@ -24,26 +24,32 @@ Select any epoch timestamp on any website and get an instant inline popup showin
 Works on regular text, input fields, and text areas across every website.
 
 2) Popup Converter with Three Powerful Modes
-Click the extension icon to open a clean, keyboard-friendly popup with three tabs:
+Click the extension icon to open a clean, keyboard-friendly popup with three tabs.
+Your current timezone and UTC offset are shown in the header at a glance.
 
   A) Epoch to Date
   Paste or type any Unix epoch value (seconds or milliseconds). The input
   auto-fills with the current epoch and live-refreshes every second. Pause it
-  by clicking in — it resumes when you clear the field.
+  by clicking in — it resumes when you clear the field. A dedicated clock
+  button copies the current millisecond timestamp and fills the input field.
   Output: Epoch (ms), GMT/UTC, Local time, Relative time.
 
   B) Date to Epoch
-  Enter a date and time using intuitive fields (year, month, day, hour, minute,
-  second, millisecond). Switch between Local and GMT/UTC timezone. Use quick
-  presets — Start of Day, End of Day, or Current Time — to fill time fields
-  instantly.
+  Enter a date and time using validated numeric fields (year, month, day, hour,
+  minute, second, millisecond) with per-field error highlighting. Switch between
+  Local and GMT/UTC timezone. Time presets — Start of Day, End of Day, or
+  Current Time — sit inline with the time fields for quick access.
+  Click "Convert ISO String" to flip the form into ISO 8601 mode: paste an ISO
+  string (e.g. 2026-03-19T12:00:00.000Z) with an optional fallback timezone
+  selector, then convert. Click "Enter Date Manually" to flip back.
   Output: Epoch (ms), Epoch (s), Relative time.
 
   C) Relative to Epoch
   Build a timestamp relative to "now". Choose Ago or From Now, then enter any
-  combination of Days, Hours, Minutes, Seconds, and Milliseconds. Smart display
-  shows only relevant units — no clutter.
-  Output: Epoch (ms), GMT/UTC, Local time, Relative time.
+  combination of Days, Hours, Minutes, Seconds, and Milliseconds. Overflow
+  values are automatically normalized (e.g. 90 minutes becomes 1h 30m). Smart
+  display shows only relevant units — no clutter.
+  Output: Epoch (ms), UTC/UTC, Local time, Relative time.
 
 3) Conversion History
 Your last 10 conversions are saved locally with quick copy buttons. View them
@@ -76,6 +82,7 @@ SUPPORTED INPUTS
 - Unix epoch in seconds (10 digits, e.g. 1714000000)
 - Unix epoch in milliseconds (13 digits, e.g. 1714000000000)
 - Commas and underscores allowed (e.g. 1,714,000,000 or 1_714_000_000)
+- ISO 8601 strings (e.g. 2026-03-19T12:00:00.000Z) in Date → Epoch ISO mode
 
 
 PERFECT FOR
@@ -88,6 +95,16 @@ PERFECT FOR
 - Database administrators inspecting epoch columns
 - Anyone tired of Googling "epoch to date converter"
 
+
+WHAT'S NEW IN v1.4
+
+- ISO 8601 string input mode in Date → Epoch (with fallback timezone selector)
+- Copy current epoch (ms) button in Epoch → Date that also fills the input field
+- Numeric input fields with per-field validation and error highlighting
+- Automatic normalization of overflow values in Relative tab
+- Time presets moved inline with time fields for a more compact layout
+- Current timezone and UTC offset shown in the popup header
+- Date fields require a value; time fields default to zero on blur
 
 WHAT'S NEW IN v1.3
 

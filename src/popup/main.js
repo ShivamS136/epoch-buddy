@@ -10,11 +10,18 @@ import {
   pad3,
   formatRelativeParts,
   buildConversionData,
-  stripTimezoneSuffix,
   formatTimeOnly,
+  formatTimeZoneOffset,
 } from "../shared/formatting.js";
-import { parseEpoch, parseDateInput, parseTimePart } from "../shared/parsing.js";
-import { createCopyButton } from "../shared/clipboard.js";
+import {
+  parseEpoch,
+  parseDateInput,
+  parseTimePart,
+  parseDateField,
+  parseIsoString,
+  normalizeRelativeFields,
+} from "../shared/parsing.js";
+import { createCopyButton, bindLiveCopyButton } from "../shared/clipboard.js";
 import {
   loadThemeFromStorage,
   saveThemeToStorage,
@@ -62,12 +69,20 @@ import {
     }
   });
 
+  // ── Header timezone ────────────────────────────────────────────
+
+  const headerTzEl = document.getElementById("header-tz");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const offset = formatTimeZoneOffset(new Date(), true);
+  headerTzEl.textContent = `${tz} (UTC${offset})`;
+
   // ── DOM references ────────────────────────────────────────────────
 
   const epochFormEl = document.getElementById("epoch-to-date-form");
   const dateFormEl = document.getElementById("date-to-epoch-form");
   const relativeFormEl = document.getElementById("relative-form");
   const inputEl = document.getElementById("epoch-input");
+  const copyEpochBtn = document.getElementById("copy-epoch-btn");
   const dateYearEl = document.getElementById("date-year");
   const dateMonthEl = document.getElementById("date-month");
   const dateDayEl = document.getElementById("date-day");
@@ -93,6 +108,120 @@ import {
   const relativeMinutesEl = document.getElementById("relative-minutes");
   const relativeSecondsEl = document.getElementById("relative-seconds");
   const relativeMsEl = document.getElementById("relative-ms");
+
+  const isoToggleBtn = document.getElementById("iso-toggle-btn");
+  const dateManualGroup = dateFormEl.querySelector(".date-manual-group");
+  const isoInputGroup = dateFormEl.querySelector(".iso-input-group");
+  const isoInputEl = document.getElementById("iso-input");
+  const isoTzSelectEl = document.getElementById("iso-tz-select");
+
+  // ── Floating label helper for number inputs ─────────────────────
+
+  const syncHasValue = (input) => {
+    input.classList.toggle("has-value", input.value !== "");
+  };
+
+  const allNumberInputs = dateFormEl
+    .querySelectorAll('input[type="number"]');
+  const relNumberInputs = relativeFormEl
+    .querySelectorAll('input[type="number"]');
+
+  [...allNumberInputs, ...relNumberInputs].forEach((input) => {
+    input.addEventListener("input", () => syncHasValue(input));
+    input.addEventListener("blur", () => syncHasValue(input));
+    syncHasValue(input);
+  });
+
+  // ── Field error helpers ─────────────────────────────────────────
+
+  const clearFieldErrors = (form) => {
+    form.querySelectorAll(".field-error").forEach((el) => {
+      el.classList.remove("field-error");
+    });
+  };
+
+  const setFieldError = (input) => {
+    const wrapper = input.closest(".floating-field");
+    if (wrapper) wrapper.classList.add("field-error");
+  };
+
+  const clearFieldError = (input) => {
+    const wrapper = input.closest(".floating-field");
+    if (wrapper) wrapper.classList.remove("field-error");
+  };
+
+  // ── Blur behavior: time fields → 0, date fields → error ────────
+
+  const dateFields = [dateYearEl, dateMonthEl, dateDayEl];
+  const timeFields = [timeHourEl, timeMinuteEl, timeSecondEl, timeMsEl];
+  const relFields = [
+    relativeDaysEl,
+    relativeHoursEl,
+    relativeMinutesEl,
+    relativeSecondsEl,
+    relativeMsEl,
+  ];
+
+  const dateFieldLabels = ["Year", "Month", "Day"];
+
+  dateFields.forEach((input, i) => {
+    input.addEventListener("blur", () => {
+      syncHasValue(input);
+      if (input.value.trim() === "") {
+        setFieldError(input);
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = `${dateFieldLabels[i]} is required.`;
+      } else {
+        clearFieldError(input);
+      }
+    });
+    input.addEventListener("input", () => {
+      clearFieldError(input);
+      dateErrorEl.hidden = true;
+      dateErrorEl.textContent = "";
+    });
+  });
+
+  timeFields.forEach((input) => {
+    input.addEventListener("blur", () => {
+      if (input.value.trim() === "" || Number.isNaN(Number(input.value))) {
+        input.value = 0;
+      }
+      syncHasValue(input);
+    });
+  });
+
+  relFields.forEach((input) => {
+    input.addEventListener("blur", () => {
+      if (input.value.trim() === "" || Number.isNaN(Number(input.value))) {
+        input.value = 0;
+      }
+      syncHasValue(input);
+    });
+  });
+
+  // ── Normalize relative fields on blur ───────────────────────────
+
+  const normalizeRelativeInputs = () => {
+    const d = Number(relativeDaysEl.value) || 0;
+    const h = Number(relativeHoursEl.value) || 0;
+    const m = Number(relativeMinutesEl.value) || 0;
+    const s = Number(relativeSecondsEl.value) || 0;
+    const ms = Number(relativeMsEl.value) || 0;
+    if (h > 23 || m > 59 || s > 59 || ms > 999) {
+      const n = normalizeRelativeFields(d, h, m, s, ms);
+      relativeDaysEl.value = n.days;
+      relativeHoursEl.value = n.hours;
+      relativeMinutesEl.value = n.minutes;
+      relativeSecondsEl.value = n.seconds;
+      relativeMsEl.value = n.ms;
+      relFields.forEach(syncHasValue);
+    }
+  };
+
+  relFields.forEach((input) => {
+    input.addEventListener("blur", normalizeRelativeInputs);
+  });
 
   // ── History (chrome.storage) ──────────────────────────────────────
 
@@ -132,34 +261,32 @@ import {
   // ── Result rendering ──────────────────────────────────────────────
 
   const appendResultRow = (targetEl, row) => {
-    const rowEl = document.createElement("div");
-    rowEl.className = "result-row";
     if (row.isRelative) {
-      rowEl.classList.add("relative");
-    }
-
-    let afterLabelText = "";
-    if (row.label === "GMT") {
-      afterLabelText = "  ";
-    } else if (row.label === "Epoch (s)") {
-      afterLabelText = " ";
+      const sep = document.createElement("div");
+      sep.className = "result-separator";
+      targetEl.appendChild(sep);
     }
 
     const labelEl = document.createElement("strong");
     labelEl.className = "result-label";
-    labelEl.textContent = `${row.label}${afterLabelText}: `;
-    rowEl.appendChild(labelEl);
+    labelEl.textContent = row.label;
+    targetEl.appendChild(labelEl);
+
+    const colonEl = document.createElement("span");
+    colonEl.className = "result-colon";
+    colonEl.textContent = ":";
+    targetEl.appendChild(colonEl);
 
     const valueEl = document.createElement("span");
     valueEl.className = "result-value";
-    valueEl.textContent = `${row.value}`;
-    rowEl.appendChild(valueEl);
+    valueEl.textContent = row.value;
+    targetEl.appendChild(valueEl);
 
     if (row.copy) {
-      rowEl.appendChild(createCopyButton(row.copy));
+      targetEl.appendChild(createCopyButton(row.copy));
+    } else {
+      targetEl.appendChild(document.createElement("span"));
     }
-
-    targetEl.appendChild(rowEl);
   };
 
   const renderEpochToDateResult = (epochMs, conversion) => {
@@ -167,12 +294,13 @@ import {
       ? resultEl.replaceChildren()
       : (resultEl.textContent = "");
     const rows = [
+      { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-      { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
+      { label: "UTC", value: conversion.utc, copy: conversion.utc },
       {
-        label: "Local",
-        value: conversion.local,
-        copy: stripTimezoneSuffix(conversion.local),
+        label: `Local (${conversion.tzLabel})`,
+        value: conversion.localTimestamp,
+        copy: conversion.localTimestamp,
       },
       { label: "Relative", value: conversion.relative, isRelative: true },
     ];
@@ -186,11 +314,13 @@ import {
       ? dateResultEl.replaceChildren()
       : (dateResultEl.textContent = "");
     const rows = [
+      { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
+      { label: "UTC", value: conversion.utc, copy: conversion.utc },
       {
-        label: "Epoch (s)",
-        value: String(Math.floor(epochMs / 1000)),
-        copy: String(Math.floor(epochMs / 1000)),
+        label: `Local (${conversion.tzLabel})`,
+        value: conversion.localTimestamp,
+        copy: conversion.localTimestamp,
       },
       { label: "Relative", value: conversion.relative, isRelative: true },
     ];
@@ -204,12 +334,13 @@ import {
       ? relativeResultEl.replaceChildren()
       : (relativeResultEl.textContent = "");
     const rows = [
+      { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-      { label: "GMT", value: conversion.gmt, copy: conversion.gmt },
+      { label: "UTC", value: conversion.utc, copy: conversion.utc },
       {
-        label: "Local",
-        value: conversion.local,
-        copy: stripTimezoneSuffix(conversion.local),
+        label: `Local (${conversion.tzLabel})`,
+        value: conversion.localTimestamp,
+        copy: conversion.localTimestamp,
       },
       { label: "Relative", value: relativeLabel, isRelative: true },
     ];
@@ -264,57 +395,50 @@ import {
       topRow.appendChild(epochSpan);
       topRow.appendChild(timeWrapper);
 
+      item.appendChild(topRow);
+
+      const conversion = buildConversionData(entry.epochMs);
+
+      const linesGrid = document.createElement("div");
+      linesGrid.className = "history-lines";
+
       const addHistoryLine = (label, value, copyValue) => {
-        const row = document.createElement("div");
-        row.className = "history-line";
-
-        let afterLabelText = "";
-        if (label === "GMT") {
-          afterLabelText = "  ";
-        } else if (label === "Epoch (s)") {
-          afterLabelText = " ";
-        }
-
         const rowLabel = document.createElement("span");
         rowLabel.className = "history-label";
-        rowLabel.textContent = `${label}${afterLabelText}:`;
+        rowLabel.textContent = label;
+        linesGrid.appendChild(rowLabel);
+
+        const colonEl = document.createElement("span");
+        colonEl.className = "history-colon";
+        colonEl.textContent = ":";
+        linesGrid.appendChild(colonEl);
+
         const rowValue = document.createElement("span");
         rowValue.className = "history-value";
         rowValue.textContent = value || "";
-        row.appendChild(rowLabel);
-        row.appendChild(rowValue);
+        linesGrid.appendChild(rowValue);
+
         if (copyValue) {
-          row.appendChild(createCopyButton(copyValue));
+          linesGrid.appendChild(createCopyButton(copyValue));
+        } else {
+          linesGrid.appendChild(document.createElement("span"));
         }
-        item.appendChild(row);
       };
 
-      item.appendChild(topRow);
+      addHistoryLine("Epoch (s)", conversion.epochS, conversion.epochS);
+      addHistoryLine(
+        "Epoch (ms)",
+        String(entry.epochMs),
+        String(entry.epochMs),
+      );
+      addHistoryLine("UTC", conversion.utc, conversion.utc);
+      addHistoryLine(
+        `Local (${conversion.tzLabel})`,
+        conversion.localTimestamp,
+        conversion.localTimestamp,
+      );
 
-      if (entry.source === "date") {
-        addHistoryLine(
-          "Epoch (ms)",
-          String(entry.epochMs),
-          String(entry.epochMs),
-        );
-        addHistoryLine(
-          "Epoch (s)",
-          String(Math.floor(entry.epochMs / 1000)),
-          String(Math.floor(entry.epochMs / 1000)),
-        );
-      } else {
-        addHistoryLine(
-          "Epoch (ms)",
-          String(entry.epochMs),
-          String(entry.epochMs),
-        );
-        addHistoryLine("GMT", entry.gmt || "", entry.gmt || "");
-        addHistoryLine(
-          "Local",
-          entry.local || "",
-          stripTimezoneSuffix(entry.local || ""),
-        );
-      }
+      item.appendChild(linesGrid);
 
       historyListEl.appendChild(item);
     });
@@ -339,27 +463,6 @@ import {
 
   clearHistoryEl.addEventListener("click", () => {
     clearHistory();
-  });
-
-  // ── Numeric-only inputs ───────────────────────────────────────────
-
-  [
-    dateYearEl,
-    dateMonthEl,
-    dateDayEl,
-    timeHourEl,
-    timeMinuteEl,
-    timeSecondEl,
-    timeMsEl,
-    relativeDaysEl,
-    relativeHoursEl,
-    relativeMinutesEl,
-    relativeSecondsEl,
-    relativeMsEl,
-  ].forEach((input) => {
-    input.addEventListener("input", () => {
-      input.value = input.value.replace(/\D/g, "");
-    });
   });
 
   // ── Auto-refresh epoch input ──────────────────────────────────────
@@ -392,6 +495,15 @@ import {
   updateEpochInput();
   setInterval(updateEpochInput, 1000);
 
+  // ── Copy epoch button ──────────────────────────────────────────
+
+  bindLiveCopyButton(copyEpochBtn, () => String(Date.now()), {
+    onCopy: (val) => {
+      inputEl.value = val;
+      stopEpochAutoRefresh();
+    },
+  });
+
   // ── Time presets ──────────────────────────────────────────────────
 
   const presetChips = document.querySelectorAll(".preset-chip");
@@ -403,30 +515,27 @@ import {
   };
 
   const applyTimePreset = (preset) => {
-    const useGmt = timezoneSelectEl.value === "gmt";
+    const useUtc = timezoneSelectEl.value === "utc";
     if (preset === "sod") {
-      timeHourEl.value = "00";
-      timeMinuteEl.value = "00";
-      timeSecondEl.value = "00";
-      timeMsEl.value = "000";
+      timeHourEl.value = 0;
+      timeMinuteEl.value = 0;
+      timeSecondEl.value = 0;
+      timeMsEl.value = 0;
     } else if (preset === "eod") {
-      timeHourEl.value = "23";
-      timeMinuteEl.value = "59";
-      timeSecondEl.value = "59";
-      timeMsEl.value = "999";
+      timeHourEl.value = 23;
+      timeMinuteEl.value = 59;
+      timeSecondEl.value = 59;
+      timeMsEl.value = 999;
     } else if (preset === "now") {
       const now = new Date();
-      timeHourEl.value = pad2(useGmt ? now.getUTCHours() : now.getHours());
-      timeMinuteEl.value = pad2(
-        useGmt ? now.getUTCMinutes() : now.getMinutes(),
-      );
-      timeSecondEl.value = pad2(
-        useGmt ? now.getUTCSeconds() : now.getSeconds(),
-      );
-      timeMsEl.value = pad3(
-        useGmt ? now.getUTCMilliseconds() : now.getMilliseconds(),
-      );
+      timeHourEl.value = useUtc ? now.getUTCHours() : now.getHours();
+      timeMinuteEl.value = useUtc ? now.getUTCMinutes() : now.getMinutes();
+      timeSecondEl.value = useUtc ? now.getUTCSeconds() : now.getSeconds();
+      timeMsEl.value = useUtc
+        ? now.getUTCMilliseconds()
+        : now.getMilliseconds();
     }
+    timeFields.forEach(syncHasValue);
     setActivePreset(preset);
   };
 
@@ -436,32 +545,77 @@ import {
     });
   });
 
-  [timeHourEl, timeMinuteEl, timeSecondEl, timeMsEl].forEach((input) => {
+  timeFields.forEach((input) => {
     input.addEventListener("input", () => {
       setActivePreset(null);
     });
   });
 
+  // ── ISO toggle ────────────────────────────────────────────────────
+
+  let dateIsoMode = false;
+
+  isoToggleBtn.addEventListener("click", () => {
+    dateIsoMode = !dateIsoMode;
+    isoToggleBtn.classList.toggle("is-active", dateIsoMode);
+    isoToggleBtn.textContent = dateIsoMode
+      ? "Enter Date Manually"
+      : "Convert ISO String";
+    dateManualGroup.hidden = dateIsoMode;
+    isoInputGroup.hidden = !dateIsoMode;
+    if (dateIsoMode) {
+      isoInputEl.value = new Date().toISOString();
+    }
+    dateErrorEl.hidden = true;
+    dateErrorEl.textContent = "";
+    clearFieldErrors(dateFormEl);
+  });
+
+  // ── ISO input blur validation ──────────────────────────────────
+
+  isoInputEl.addEventListener("blur", () => {
+    const val = isoInputEl.value.trim();
+    if (!val) return;
+    const result = parseIsoString(val, isoTzSelectEl.value);
+    if (result.error) {
+      setFieldError(isoInputEl);
+      dateErrorEl.hidden = false;
+      dateErrorEl.textContent = result.error;
+    } else {
+      clearFieldError(isoInputEl);
+      dateErrorEl.hidden = true;
+      dateErrorEl.textContent = "";
+    }
+  });
+
+  isoInputEl.addEventListener("input", () => {
+    clearFieldError(isoInputEl);
+    dateErrorEl.hidden = true;
+    dateErrorEl.textContent = "";
+  });
+
   // ── Populate defaults ─────────────────────────────────────────────
 
-  const populateDateTimeFields = (useGmt) => {
+  const populateDateTimeFields = (useUtc) => {
     const now = new Date();
-    const year = useGmt ? now.getUTCFullYear() : now.getFullYear();
-    const month = useGmt ? now.getUTCMonth() + 1 : now.getMonth() + 1;
-    const day = useGmt ? now.getUTCDate() : now.getDate();
+    const year = useUtc ? now.getUTCFullYear() : now.getFullYear();
+    const month = useUtc ? now.getUTCMonth() + 1 : now.getMonth() + 1;
+    const day = useUtc ? now.getUTCDate() : now.getDate();
 
-    dateYearEl.value = String(year);
-    dateMonthEl.value = pad2(month);
-    dateDayEl.value = pad2(day);
+    dateYearEl.value = year;
+    dateMonthEl.value = month;
+    dateDayEl.value = day;
     applyTimePreset("now");
+    [...dateFields, ...timeFields].forEach(syncHasValue);
   };
 
   const populateRelativeDefaults = () => {
-    relativeDaysEl.value = "0";
-    relativeHoursEl.value = "0";
-    relativeMinutesEl.value = "0";
-    relativeSecondsEl.value = "0";
-    relativeMsEl.value = "0";
+    relativeDaysEl.value = 0;
+    relativeHoursEl.value = 0;
+    relativeMinutesEl.value = 0;
+    relativeSecondsEl.value = 0;
+    relativeMsEl.value = 0;
+    relFields.forEach(syncHasValue);
   };
 
   // ── Form handlers ─────────────────────────────────────────────────
@@ -486,9 +640,6 @@ import {
       source: "epoch",
       input: inputValue,
       epochMs,
-      gmt: conversion.gmt,
-      local: conversion.local,
-      relative: conversion.relative,
       convertedAt: new Date().toISOString(),
     });
   });
@@ -497,10 +648,57 @@ import {
     event.preventDefault();
     dateErrorEl.textContent = "";
     dateErrorEl.hidden = true;
+    clearFieldErrors(dateFormEl);
+
+    if (dateIsoMode) {
+      const result = parseIsoString(isoInputEl.value, isoTzSelectEl.value);
+      if (result.error) {
+        dateResultEl.hidden = true;
+        dateErrorEl.hidden = false;
+        dateErrorEl.textContent = result.error;
+        return;
+      }
+      const epochMs = result.value;
+      const conversion = buildConversionData(epochMs);
+      renderDateToEpochResult(epochMs, conversion);
+      saveHistory({
+        source: "iso",
+        input: isoInputEl.value.trim(),
+        epochMs,
+        convertedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    const yearResult = parseDateField(dateYearEl.value, "Year", 1);
+    if (yearResult.error) {
+      setFieldError(dateYearEl);
+      dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
+      dateErrorEl.textContent = yearResult.error;
+      return;
+    }
+    const monthResult = parseDateField(dateMonthEl.value, "Month", 1, 12);
+    if (monthResult.error) {
+      setFieldError(dateMonthEl);
+      dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
+      dateErrorEl.textContent = monthResult.error;
+      return;
+    }
+    const dayResult = parseDateField(dateDayEl.value, "Day", 1, 31);
+    if (dayResult.error) {
+      setFieldError(dateDayEl);
+      dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
+      dateErrorEl.textContent = dayResult.error;
+      return;
+    }
+
     const dateParts = parseDateInput(
-      dateYearEl.value.trim(),
-      dateMonthEl.value.trim(),
-      dateDayEl.value.trim(),
+      yearResult.value,
+      monthResult.value,
+      dayResult.value,
     );
     if (!dateParts) {
       dateResultEl.hidden = true;
@@ -511,30 +709,38 @@ import {
 
     const hour = parseTimePart(timeHourEl.value, 23, "Hour");
     if (hour.error) {
+      setFieldError(timeHourEl);
       dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
       dateErrorEl.textContent = hour.error;
       return;
     }
     const minute = parseTimePart(timeMinuteEl.value, 59, "Minute");
     if (minute.error) {
+      setFieldError(timeMinuteEl);
       dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
       dateErrorEl.textContent = minute.error;
       return;
     }
     const second = parseTimePart(timeSecondEl.value, 59, "Second");
     if (second.error) {
+      setFieldError(timeSecondEl);
       dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
       dateErrorEl.textContent = second.error;
       return;
     }
     const ms = parseTimePart(timeMsEl.value, 999, "Milliseconds");
     if (ms.error) {
+      setFieldError(timeMsEl);
       dateResultEl.hidden = true;
+      dateErrorEl.hidden = false;
       dateErrorEl.textContent = ms.error;
       return;
     }
-    const useGmt = timezoneSelectEl.value === "gmt";
-    const epochMs = useGmt
+    const useUtc = timezoneSelectEl.value === "utc";
+    const epochMs = useUtc
       ? Date.UTC(
           dateParts.year,
           dateParts.month - 1,
@@ -561,15 +767,12 @@ import {
       dateParts.day,
     )} ${pad2(hour.value)}:${pad2(minute.value)}:${pad2(second.value)}.${pad3(
       ms.value,
-    )} ${useGmt ? "GMT" : "Local"}`;
+    )} ${useUtc ? "UTC" : "Local"}`;
 
     saveHistory({
       source: "date",
       input: dateLabel,
       epochMs,
-      gmt: conversion.gmt,
-      local: conversion.local,
-      relative: conversion.relative,
       convertedAt: new Date().toISOString(),
     });
   });
@@ -588,24 +791,28 @@ import {
     const hours = parseTimePart(relativeHoursEl.value, 23, "Hours");
     if (hours.error) {
       relativeResultEl.hidden = true;
+      relativeErrorEl.hidden = false;
       relativeErrorEl.textContent = hours.error;
       return;
     }
     const minutes = parseTimePart(relativeMinutesEl.value, 59, "Minutes");
     if (minutes.error) {
       relativeResultEl.hidden = true;
+      relativeErrorEl.hidden = false;
       relativeErrorEl.textContent = minutes.error;
       return;
     }
     const seconds = parseTimePart(relativeSecondsEl.value, 59, "Seconds");
     if (seconds.error) {
       relativeResultEl.hidden = true;
+      relativeErrorEl.hidden = false;
       relativeErrorEl.textContent = seconds.error;
       return;
     }
     const ms = parseTimePart(relativeMsEl.value, 999, "Milliseconds");
     if (ms.error) {
       relativeResultEl.hidden = true;
+      relativeErrorEl.hidden = false;
       relativeErrorEl.textContent = ms.error;
       return;
     }
@@ -635,11 +842,7 @@ import {
     saveHistory({
       source: "relative",
       display: relativeLabel,
-      input: relativeLabel,
       epochMs,
-      gmt: conversion.gmt,
-      local: conversion.local,
-      relative: conversion.relative,
       convertedAt: new Date().toISOString(),
     });
   });

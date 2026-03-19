@@ -14,16 +14,29 @@ npm install
 
 ```
 src/
-  shared/            # Shared utilities (formatting, parsing, clipboard)
-  popup/main.js      # Extension popup entry point
-  content/main.js    # Content script entry point
-  demo/main.js       # Docs demo page entry point
-extension/           # Extension package (HTML, CSS, manifest + BUILT JS)
-docs/                # GitHub Pages website (HTML, CSS + BUILT demo.js)
-scripts/build.mjs    # Build, watch, and packaging script
+  shared/              # Shared utilities
+    formatting.js      #   Date/time formatting helpers
+    parsing.js         #   Input parsing & validation (epoch, date fields, ISO, relative)
+    clipboard.js       #   Copy-to-clipboard with visual feedback
+    theme.js           #   Dark/light/system theme management
+  popup/main.js        # Extension popup entry point
+  content/main.js      # Content script entry point
+  demo/main.js         # Docs demo page entry point
+extension/             # Extension package (HTML, CSS, manifest + BUILT JS)
+docs/                  # GitHub Pages website (HTML, CSS + BUILT demo.js)
+scripts/build.mjs      # Build, watch, and packaging script
 ```
 
 Source code lives in `src/`. The build step bundles each entry point into self-contained IIFE files that the extension and website reference directly.
+
+### Key shared modules
+
+| Module | Purpose |
+|--------|---------|
+| `shared/parsing.js` | `parseEpoch`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` -- validates and normalizes all user input |
+| `shared/formatting.js` | Formats dates, relative time strings, and timezone offsets for display |
+| `shared/clipboard.js` | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback |
+| `shared/theme.js` | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class |
 
 ### Build commands
 
@@ -87,3 +100,12 @@ npm run pack           # both
 ```
 
 Pack commands always produce a clean zip for the target browser, regardless of the current state of `extension/manifest.json`.
+
+### Input conventions
+
+- All numeric inputs use `type="number"` with explicit `min`/`max` attributes. Native spinner arrows are hidden via CSS.
+- Floating labels on `type="number"` fields require a JavaScript-managed `.has-value` class (the CSS `:placeholder-shown` trick does not work reliably for number inputs).
+- **Date fields** (year, month, day) show a `.field-error` highlight on blur if left empty.
+- **Time fields** (hour, minute, second, ms) default to `0` on blur if empty or invalid.
+- **Relative fields** auto-normalize overflow on blur via `normalizeRelativeFields` (e.g. 90 minutes → 1 hour 30 minutes).
+- The **ISO input mode** in Date → Epoch flips the manual fields to a single text input. It pre-fills with `new Date().toISOString()` on toggle and validates on blur via `parseIsoString`.

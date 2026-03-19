@@ -11,7 +11,7 @@
       <header class="header">
         <div class="header-text">
           <h1>Epoch Buddy</h1>
-          <p>Convert epoch to readable time.</p>
+          <span id="header-tz" class="header-tz"></span>
         </div>
         <div class="header-actions">
           <div class="theme-toggle">
@@ -72,6 +72,9 @@
               <input id="epoch-input" type="text" inputmode="numeric" placeholder=" " autocomplete="off" />
               <label for="epoch-input">Epoch</label>
             </div>
+            <button type="button" id="copy-epoch-btn" class="copy-epoch-btn" title="Copy current timestamp (ms)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </button>
             <button type="submit">Convert</button>
           </div>
           <div class="hint">
@@ -86,61 +89,79 @@
           class="tab-panel"
           data-panel="date-to-epoch"
         >
-          <div class="date-grid">
-            <div class="floating-field">
-              <select id="timezone-select">
-                <option value="local">Local</option>
-                <option value="gmt">GMT</option>
-              </select>
-              <label for="timezone-select">Timezone</label>
+          <div class="date-manual-group">
+            <div class="date-grid">
+              <div class="floating-field">
+                <select id="timezone-select">
+                  <option value="local">Local</option>
+                  <option value="utc">UTC</option>
+                </select>
+                <label for="timezone-select">Timezone</label>
+              </div>
+              <div class="floating-field">
+                <input id="date-year" type="number" min="1" placeholder=" " autocomplete="off" />
+                <label for="date-year">Year</label>
+              </div>
+              <div class="floating-field">
+                <input id="date-month" type="number" min="1" max="12" placeholder=" " autocomplete="off" />
+                <label for="date-month">Month</label>
+              </div>
+              <div class="floating-field">
+                <input id="date-day" type="number" min="1" max="31" placeholder=" " autocomplete="off" />
+                <label for="date-day">Day</label>
+              </div>
             </div>
-            <div class="floating-field">
-              <input id="date-year" type="text" inputmode="numeric" placeholder=" " autocomplete="off" />
-              <label for="date-year">Year</label>
-            </div>
-            <div class="floating-field">
-              <input id="date-month" type="text" inputmode="numeric" placeholder=" " autocomplete="off" />
-              <label for="date-month">Month</label>
-            </div>
-            <div class="floating-field">
-              <input id="date-day" type="text" inputmode="numeric" placeholder=" " autocomplete="off" />
-              <label for="date-day">Day</label>
+
+            <div class="time-grid">
+              <div class="floating-field">
+                <input id="time-hour" type="number" min="0" max="23" placeholder=" " />
+                <label for="time-hour">Hour</label>
+              </div>
+              <div class="floating-field">
+                <input id="time-minute" type="number" min="0" max="59" placeholder=" " />
+                <label for="time-minute">Min</label>
+              </div>
+              <div class="floating-field">
+                <input id="time-second" type="number" min="0" max="59" placeholder=" " />
+                <label for="time-second">Sec</label>
+              </div>
+              <div class="floating-field">
+                <input id="time-ms" type="number" min="0" max="999" placeholder=" " />
+                <label for="time-ms">MS</label>
+              </div>
+              <div class="time-presets" role="group" aria-label="Time presets">
+                <button type="button" class="preset-chip btn-clock" data-preset="now" title="Current time">
+                  <img src="icons/clock-now.svg" alt="Now" width="16" height="16" />
+                </button>
+                <button type="button" class="preset-chip btn-sun" data-preset="sod" title="Start of day (00:00:00.000)">
+                  <img src="icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
+                </button>
+                <button type="button" class="preset-chip btn-moon" data-preset="eod" title="End of day (23:59:59.999)">
+                  <img src="icons/night.svg" alt="End of Day" width="16" height="16" />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="time-grid">
-            <div class="floating-field">
-              <input id="time-hour" type="text" inputmode="numeric" placeholder=" " />
-              <label for="time-hour">Hour</label>
+          <div class="iso-input-group" hidden>
+            <div class="floating-field" style="flex:1">
+              <input id="iso-input" type="text" placeholder="YYYY-MM-DDTHH:mm:ss.sssZ" autocomplete="off" />
+              <label for="iso-input">ISO 8601 String</label>
             </div>
             <div class="floating-field">
-              <input id="time-minute" type="text" inputmode="numeric" placeholder=" " />
-              <label for="time-minute">Min</label>
-            </div>
-            <div class="floating-field">
-              <input id="time-second" type="text" inputmode="numeric" placeholder=" " />
-              <label for="time-second">Sec</label>
-            </div>
-            <div class="floating-field">
-              <input id="time-ms" type="text" inputmode="numeric" placeholder=" " />
-              <label for="time-ms">MS</label>
+              <select id="iso-tz-select">
+                <option value="auto">Auto (from string)</option>
+                <option value="local">Local</option>
+                <option value="utc">UTC</option>
+              </select>
+              <label for="iso-tz-select">Fallback TZ</label>
             </div>
           </div>
 
           <div class="preset-row">
-            <div class="time-presets" role="group" aria-label="Time presets">
-              <button type="button" class="preset-chip btn-clock" data-preset="now" title="Current time">
-                <img src="icons/clock-now.svg" alt="Now" width="16" height="16" />
-              </button>
-              <button type="button" class="preset-chip btn-sun" data-preset="sod" title="Start of day (00:00:00.000)">
-                <img src="icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
-              </button>
-              <button type="button" class="preset-chip btn-moon" data-preset="eod" title="End of day (23:59:59.999)">
-                <img src="icons/night.svg" alt="End of Day" width="16" height="16" />
-              </button>
-            </div>
+            <button type="button" id="iso-toggle-btn" class="iso-toggle-btn" title="Switch to ISO string input">Convert ISO String</button>
             <button type="submit">Convert</button>
-        </div>
+          </div>
 
           <div id="date-error" class="error" role="alert" hidden></div>
           <div id="date-result" class="result" hidden></div>
@@ -156,23 +177,23 @@
               <label for="relative-direction">Direction</label>
             </div>
             <div class="floating-field">
-              <input id="relative-days" type="text" inputmode="numeric" placeholder=" " />
+              <input id="relative-days" type="number" min="0" placeholder=" " />
               <label for="relative-days">Days</label>
             </div>
             <div class="floating-field">
-              <input id="relative-hours" type="text" inputmode="numeric" placeholder=" " />
+              <input id="relative-hours" type="number" min="0" placeholder=" " />
               <label for="relative-hours">Hrs</label>
             </div>
             <div class="floating-field">
-              <input id="relative-minutes" type="text" inputmode="numeric" placeholder=" " />
+              <input id="relative-minutes" type="number" min="0" placeholder=" " />
               <label for="relative-minutes">Min</label>
             </div>
             <div class="floating-field">
-              <input id="relative-seconds" type="text" inputmode="numeric" placeholder=" " />
+              <input id="relative-seconds" type="number" min="0" placeholder=" " />
               <label for="relative-seconds">Sec</label>
             </div>
             <div class="floating-field">
-              <input id="relative-ms" type="text" inputmode="numeric" placeholder=" " />
+              <input id="relative-ms" type="number" min="0" placeholder=" " />
               <label for="relative-ms">Ms</label>
             </div>
             <button type="submit" style="grid-column: span 2">Convert</button>

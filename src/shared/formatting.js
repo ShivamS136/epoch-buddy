@@ -24,7 +24,7 @@ export const formatDateParts = (date, useUtc) => {
   };
 };
 
-export const formatGmtTimestamp = (date) => {
+export const formatUtcTimestamp = (date) => {
   const year = date.getUTCFullYear();
   const month = pad2(date.getUTCMonth() + 1);
   const day = pad2(date.getUTCDate());
@@ -109,7 +109,10 @@ export const formatRelativeParts = (parts, suffix) => {
 export const buildConversionData = (epochMs) => {
   const date = new Date(epochMs);
   return {
-    gmt: formatGmtTimestamp(date),
+    epochS: String(Math.floor(epochMs / 1000)),
+    utc: formatUtcTimestamp(date),
+    localTimestamp: formatLocalTimestamp(date),
+    tzLabel: formatTimeZoneOffset(date, true),
     local: `${formatLocalTimestamp(date)} (${formatTimeZoneOffset(date, true)})`,
     relative: formatRelative(epochMs),
   };

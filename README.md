@@ -13,20 +13,22 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
   ![on-page selection popup](docs/assets/screenshots/popup.png)
 
-- **Epoch to Date**: Paste or type an epoch and get GMT, Local, and Relative time.
+- **Epoch to Date**: Paste or type an epoch and get UTC, Local, and Relative time. A dedicated clock button copies the current millisecond timestamp to your clipboard and populates the input field.
 
   ![epoch to date](docs/assets/screenshots/extension-1.png)
 
-- **Date to Epoch**: Enter date/time fields and get Epoch (ms), Epoch (s), and Relative time. Quick presets for start of the day, end of the day, and current time.
+- **Date to Epoch**: Enter date/time using numeric fields with inline validation. Time presets (Now, Start of Day, End of Day) sit alongside the time fields for quick access. Switch to **ISO string mode** to paste an ISO 8601 value (e.g. `2026-03-19T12:00:00.000Z`) with an optional fallback timezone selector.
 
   ![date to epoch](docs/assets/screenshots/extension-2.png)
 
-- **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch, GMT, Local, and Relative time.
+- **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch, UTC, Local, and Relative time. Overflow values are automatically normalized on blur (e.g. 90 minutes becomes 1 hour 30 minutes).
 
   ![relative to epoch](docs/assets/screenshots/extension-3.png)
 
+- **Smart validation**: All numeric fields enforce min/max ranges, show per-field error highlighting, and default to zero on blur for time fields (date fields require a value).
 - **History**: Last 10 conversions with quick copy buttons and a clear button.
 - **Dark Mode**: Supports dark mode in both the extension menu and the popup.
+- **Timezone display**: The extension popup header shows the current IANA timezone and UTC offset.
 
 ## Quick start
 

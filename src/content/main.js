@@ -5,10 +5,7 @@
  * floating popup with converted timestamps.
  */
 
-import {
-  buildConversionData,
-  stripTimezoneSuffix,
-} from "../shared/formatting.js";
+import { buildConversionData } from "../shared/formatting.js";
 import { parseEpoch } from "../shared/parsing.js";
 import { createCopyButton } from "../shared/clipboard.js";
 import {
@@ -143,31 +140,37 @@ import {
     const el = createPopupEl();
     el.replaceChildren ? el.replaceChildren() : (el.textContent = "");
     formatted.forEach((line) => {
-      const row = document.createElement("div");
-      row.className = "epoch-buddy-row";
       if (line.isRelative) {
-        row.classList.add("epoch-buddy-relative");
+        const sep = document.createElement("div");
+        sep.className = "epoch-buddy-separator";
+        el.appendChild(sep);
       }
 
       const label = document.createElement("strong");
       label.className = "epoch-buddy-label";
-      label.textContent = `${line.label}${line.afterLabelText || ""}:`;
-      row.appendChild(label);
+      label.textContent = line.label;
+      el.appendChild(label);
+
+      const colon = document.createElement("span");
+      colon.className = "epoch-buddy-colon";
+      colon.textContent = ":";
+      el.appendChild(colon);
 
       const value = document.createElement("span");
       value.className = "epoch-buddy-value";
       value.textContent = `${line.value}`;
-      row.appendChild(value);
+      el.appendChild(value);
 
       if (!line.noCopy) {
-        row.appendChild(
+        el.appendChild(
           createCopyButton(
             typeof line.copyValue === "string" ? line.copyValue : line.value,
             copyBtnOpts,
           ),
         );
+      } else {
+        el.appendChild(document.createElement("span"));
       }
-      el.appendChild(row);
     });
 
     const scrollX = window.scrollX || window.pageXOffset;
@@ -267,20 +270,24 @@ import {
     const conversion = buildConversionData(epochMs);
     const formatted = [
       {
+        label: "Epoch (s)",
+        value: conversion.epochS,
+        copyValue: conversion.epochS,
+      },
+      {
         label: "Epoch (ms)",
         value: epochMs,
         copyValue: epochMs,
       },
       {
-        label: "GMT",
-        value: conversion.gmt,
-        copyValue: conversion.gmt,
-        afterLabelText: "  ",
+        label: "UTC",
+        value: conversion.utc,
+        copyValue: conversion.utc,
       },
       {
-        label: "Local",
-        value: conversion.local,
-        copyValue: stripTimezoneSuffix(conversion.local),
+        label: `Local (${conversion.tzLabel})`,
+        value: conversion.localTimestamp,
+        copyValue: conversion.localTimestamp,
       },
       {
         label: "Relative",
@@ -295,9 +302,6 @@ import {
       source: "epoch",
       input: selectedText.trim(),
       epochMs,
-      gmt: conversion.gmt,
-      local: conversion.local,
-      relative: conversion.relative,
       convertedAt: new Date().toISOString(),
     });
   };

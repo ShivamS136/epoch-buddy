@@ -18,7 +18,7 @@
       seconds: pad2(seconds)
     };
   };
-  var formatGmtTimestamp = (date) => {
+  var formatUtcTimestamp = (date) => {
     const year = date.getUTCFullYear();
     const month = pad2(date.getUTCMonth() + 1);
     const day = pad2(date.getUTCDate());
@@ -73,12 +73,14 @@
   var buildConversionData = (epochMs) => {
     const date = new Date(epochMs);
     return {
-      gmt: formatGmtTimestamp(date),
+      epochS: String(Math.floor(epochMs / 1e3)),
+      utc: formatUtcTimestamp(date),
+      localTimestamp: formatLocalTimestamp(date),
+      tzLabel: formatTimeZoneOffset(date, true),
       local: `${formatLocalTimestamp(date)} (${formatTimeZoneOffset(date, true)})`,
       relative: formatRelative(epochMs)
     };
   };
-  var stripTimezoneSuffix = (value) => value.replace(/\s\([+-]\d{2}:\d{2}\)$/, "");
 
   // src/shared/parsing.js
   var EPOCH_SECONDS_REGEX = /^\d{10}$/;
@@ -96,6 +98,9 @@
   };
 
   // src/shared/clipboard.js
+  var ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var ICON_ERROR = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   var createCopyButton = (value, {
     className = "copy-btn",
     successClass = "copy-success",
@@ -104,9 +109,10 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = className;
-    button.textContent = "copy";
+    button.innerHTML = ICON_COPY;
+    button.setAttribute("aria-label", "Copy");
     const resetButton = () => {
-      button.textContent = "copy";
+      button.innerHTML = ICON_COPY;
       button.classList.remove(successClass, errorClass);
     };
     button.addEventListener("click", async (event) => {
@@ -114,11 +120,11 @@
       event.stopPropagation();
       try {
         await navigator.clipboard.writeText(String(value));
-        button.textContent = "copied";
+        button.innerHTML = ICON_CHECK;
         button.classList.remove(errorClass);
         button.classList.add(successClass);
       } catch (_err) {
-        button.textContent = "error";
+        button.innerHTML = ICON_ERROR;
         button.classList.remove(successClass);
         button.classList.add(errorClass);
       }
@@ -249,28 +255,33 @@
       const el = createPopupEl();
       el.replaceChildren ? el.replaceChildren() : el.textContent = "";
       formatted.forEach((line) => {
-        const row = document.createElement("div");
-        row.className = "epoch-buddy-row";
         if (line.isRelative) {
-          row.classList.add("epoch-buddy-relative");
+          const sep = document.createElement("div");
+          sep.className = "epoch-buddy-separator";
+          el.appendChild(sep);
         }
         const label = document.createElement("strong");
         label.className = "epoch-buddy-label";
-        label.textContent = `${line.label}${line.afterLabelText || ""}:`;
-        row.appendChild(label);
+        label.textContent = line.label;
+        el.appendChild(label);
+        const colon = document.createElement("span");
+        colon.className = "epoch-buddy-colon";
+        colon.textContent = ":";
+        el.appendChild(colon);
         const value = document.createElement("span");
         value.className = "epoch-buddy-value";
         value.textContent = `${line.value}`;
-        row.appendChild(value);
+        el.appendChild(value);
         if (!line.noCopy) {
-          row.appendChild(
+          el.appendChild(
             createCopyButton(
               typeof line.copyValue === "string" ? line.copyValue : line.value,
               copyBtnOpts
             )
           );
+        } else {
+          el.appendChild(document.createElement("span"));
         }
-        el.appendChild(row);
       });
       const scrollX = window.scrollX || window.pageXOffset;
       const scrollY = window.scrollY || window.pageYOffset;
@@ -347,20 +358,24 @@
       const conversion = buildConversionData(epochMs);
       const formatted = [
         {
+          label: "Epoch (s)",
+          value: conversion.epochS,
+          copyValue: conversion.epochS
+        },
+        {
           label: "Epoch (ms)",
           value: epochMs,
           copyValue: epochMs
         },
         {
-          label: "GMT",
-          value: conversion.gmt,
-          copyValue: conversion.gmt,
-          afterLabelText: "  "
+          label: "UTC",
+          value: conversion.utc,
+          copyValue: conversion.utc
         },
         {
-          label: "Local",
-          value: conversion.local,
-          copyValue: stripTimezoneSuffix(conversion.local)
+          label: `Local (${conversion.tzLabel})`,
+          value: conversion.localTimestamp,
+          copyValue: conversion.localTimestamp
         },
         {
           label: "Relative",
@@ -374,9 +389,6 @@
         source: "epoch",
         input: selectedText.trim(),
         epochMs,
-        gmt: conversion.gmt,
-        local: conversion.local,
-        relative: conversion.relative,
         convertedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
     };
