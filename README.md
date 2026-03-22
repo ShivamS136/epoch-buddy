@@ -29,6 +29,7 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 - **History**: Last 10 conversions with quick copy buttons and a clear button.
 - **Dark Mode**: Supports dark mode in both the extension menu and the popup.
 - **Timezone display**: The extension popup header shows the current IANA timezone and UTC offset.
+- **Feedback (v1.5+)**: Optional footer with a 5-star flow — lower ratings can open your Google Form, higher ratings the Chrome or Firefox store review page (URLs wired at build time). The footer is pinned to the bottom of the popup; you can dismiss it locally until reinstall.
 
 ## Quick start
 
