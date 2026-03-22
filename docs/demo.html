@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -13,7 +13,11 @@
     <link rel="icon" href="./favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
     <script>
-      (function(){var t=localStorage.getItem("epochBuddyTheme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)})();
+      (function () {
+        var t = localStorage.getItem("epochBuddyTheme");
+        if (t === "dark" || t === "light")
+          document.documentElement.setAttribute("data-theme", t);
+      })();
     </script>
   </head>
   <body>
@@ -47,20 +51,93 @@
             >
           </div>
           <div class="theme-toggle">
-            <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle theme">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <button
+              type="button"
+              class="theme-toggle-btn"
+              id="theme-toggle-btn"
+              title="Toggle theme"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="5" />
+                <path
+                  d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                />
+              </svg>
             </button>
             <div class="theme-menu" id="theme-menu" hidden>
-              <button type="button" class="theme-menu-item" data-theme-option="light">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <button
+                type="button"
+                class="theme-menu-item"
+                data-theme-option="light"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <path
+                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                  />
+                </svg>
                 Light
               </button>
-              <button type="button" class="theme-menu-item" data-theme-option="dark">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              <button
+                type="button"
+                class="theme-menu-item"
+                data-theme-option="dark"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
                 Dark
               </button>
-              <button type="button" class="theme-menu-item" data-theme-option="system">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              <button
+                type="button"
+                class="theme-menu-item"
+                data-theme-option="system"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
                 System
               </button>
             </div>
@@ -121,19 +198,41 @@
 
             <div class="demo-panel is-active" data-panel="demo-epoch">
               <div class="input-row">
-                <div class="floating-field" style="flex:1">
+                <div class="floating-field" style="flex: 1">
                   <input id="demo-epoch-input" type="text" placeholder=" " />
                   <label for="demo-epoch-input">Epoch</label>
                 </div>
-                <button type="button" id="demo-copy-epoch-btn" class="copy-epoch-btn" title="Copy current timestamp (ms)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <button
+                  type="button"
+                  id="demo-copy-epoch-btn"
+                  class="copy-epoch-btn"
+                  title="Copy current timestamp (ms)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                 </button>
-                <button id="demo-epoch-submit" class="demo-action" type="button">
+                <button
+                  id="demo-epoch-submit"
+                  class="demo-action"
+                  type="button"
+                >
                   Convert
                 </button>
               </div>
               <div class="hint">
-                <small>Seconds (10) or milliseconds (13)</small>
+                <p>Seconds (10) or milliseconds (13)</p>
               </div>
               <div class="demo-error" id="demo-epoch-error" hidden></div>
               <div class="demo-output" id="demo-epoch-output"></div>
@@ -150,51 +249,131 @@
                     <label for="demo-date-tz">Timezone</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-year" type="number" min="1" placeholder=" " />
+                    <input
+                      id="demo-year"
+                      type="number"
+                      min="1"
+                      placeholder=" "
+                    />
                     <label for="demo-year">Year</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-month" type="number" min="1" max="12" placeholder=" " />
+                    <input
+                      id="demo-month"
+                      type="number"
+                      min="1"
+                      max="12"
+                      placeholder=" "
+                    />
                     <label for="demo-month">Month</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-day" type="number" min="1" max="31" placeholder=" " />
+                    <input
+                      id="demo-day"
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder=" "
+                    />
                     <label for="demo-day">Day</label>
                   </div>
                 </div>
                 <div class="demo-grid demo-time-grid">
                   <div class="floating-field">
-                    <input id="demo-hour" type="number" min="0" max="23" placeholder=" " />
+                    <input
+                      id="demo-hour"
+                      type="number"
+                      min="0"
+                      max="23"
+                      placeholder=" "
+                    />
                     <label for="demo-hour">Hour</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-minute" type="number" min="0" max="59" placeholder=" " />
+                    <input
+                      id="demo-minute"
+                      type="number"
+                      min="0"
+                      max="59"
+                      placeholder=" "
+                    />
                     <label for="demo-minute">Min</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-second" type="number" min="0" max="59" placeholder=" " />
+                    <input
+                      id="demo-second"
+                      type="number"
+                      min="0"
+                      max="59"
+                      placeholder=" "
+                    />
                     <label for="demo-second">Sec</label>
                   </div>
                   <div class="floating-field">
-                    <input id="demo-ms" type="number" min="0" max="999" placeholder=" " />
+                    <input
+                      id="demo-ms"
+                      type="number"
+                      min="0"
+                      max="999"
+                      placeholder=" "
+                    />
                     <label for="demo-ms">Ms</label>
                   </div>
-                  <div class="time-presets" role="group" aria-label="Time presets">
-                    <button type="button" class="preset-chip" data-preset="now" title="Current time">
-                      <img src="assets/icons/clock-now.svg" alt="Now" width="16" height="16" />
+                  <div
+                    class="time-presets"
+                    role="group"
+                    aria-label="Time presets"
+                  >
+                    <button
+                      type="button"
+                      class="preset-chip"
+                      data-preset="now"
+                      title="Current time"
+                    >
+                      <img
+                        src="assets/icons/clock-now.svg"
+                        alt="Now"
+                        width="16"
+                        height="16"
+                      />
                     </button>
-                    <button type="button" class="preset-chip" data-preset="sod" title="Start of day (00:00:00.000)">
-                      <img src="assets/icons/sunrise.svg" alt="Start of Day" width="16" height="16" />
+                    <button
+                      type="button"
+                      class="preset-chip"
+                      data-preset="sod"
+                      title="Start of day (00:00:00.000)"
+                    >
+                      <img
+                        src="assets/icons/sunrise.svg"
+                        alt="Start of Day"
+                        width="16"
+                        height="16"
+                      />
                     </button>
-                    <button type="button" class="preset-chip" data-preset="eod" title="End of day (23:59:59.999)">
-                      <img src="assets/icons/night.svg" alt="End of Day" width="16" height="16" />
+                    <button
+                      type="button"
+                      class="preset-chip"
+                      data-preset="eod"
+                      title="End of day (23:59:59.999)"
+                    >
+                      <img
+                        src="assets/icons/night.svg"
+                        alt="End of Day"
+                        width="16"
+                        height="16"
+                      />
                     </button>
                   </div>
                 </div>
               </div>
               <div class="demo-iso-input-group" hidden>
-                <div class="floating-field" style="flex:1">
-                  <input id="demo-iso-input" type="text" placeholder="YYYY-MM-DDTHH:mm:ss.sssZ" autocomplete="off" />
+                <div class="floating-field" style="flex: 1">
+                  <input
+                    id="demo-iso-input"
+                    type="text"
+                    placeholder="YYYY-MM-DDTHH:mm:ss.sssZ"
+                    autocomplete="off"
+                  />
                   <label for="demo-iso-input">ISO 8601 String</label>
                 </div>
                 <div class="floating-field">
@@ -207,8 +386,17 @@
                 </div>
               </div>
               <div class="preset-row">
-                <button type="button" id="demo-iso-toggle-btn" class="iso-toggle-btn" title="Switch to ISO string input">Convert ISO String</button>
-                <button id="demo-date-submit" class="demo-action" type="button">Convert</button>
+                <button
+                  type="button"
+                  id="demo-iso-toggle-btn"
+                  class="iso-toggle-btn"
+                  title="Switch to ISO string input"
+                >
+                  Convert ISO String
+                </button>
+                <button id="demo-date-submit" class="demo-action" type="button">
+                  Convert
+                </button>
               </div>
               <div class="demo-error" id="demo-date-error" hidden></div>
               <div class="demo-output" id="demo-date-output"></div>
@@ -224,26 +412,56 @@
                   <label for="demo-rel-dir">Direction</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-days" type="number" min="0" placeholder=" " />
+                  <input
+                    id="demo-rel-days"
+                    type="number"
+                    min="0"
+                    placeholder=" "
+                  />
                   <label for="demo-rel-days">Days</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-hours" type="number" min="0" placeholder=" " />
+                  <input
+                    id="demo-rel-hours"
+                    type="number"
+                    min="0"
+                    placeholder=" "
+                  />
                   <label for="demo-rel-hours">Hours</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-minutes" type="number" min="0" placeholder=" " />
+                  <input
+                    id="demo-rel-minutes"
+                    type="number"
+                    min="0"
+                    placeholder=" "
+                  />
                   <label for="demo-rel-minutes">Min</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-seconds" type="number" min="0" placeholder=" " />
+                  <input
+                    id="demo-rel-seconds"
+                    type="number"
+                    min="0"
+                    placeholder=" "
+                  />
                   <label for="demo-rel-seconds">Sec</label>
                 </div>
                 <div class="floating-field">
-                  <input id="demo-rel-ms" type="number" min="0" placeholder=" " />
+                  <input
+                    id="demo-rel-ms"
+                    type="number"
+                    min="0"
+                    placeholder=" "
+                  />
                   <label for="demo-rel-ms">Ms</label>
                 </div>
-                <button id="demo-relative-submit" class="demo-action" type="button" style="grid-column: span 2">
+                <button
+                  id="demo-relative-submit"
+                  class="demo-action"
+                  type="button"
+                  style="grid-column: span 2"
+                >
                   Convert
                 </button>
               </div>

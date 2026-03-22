@@ -29,9 +29,57 @@ import {
   updateToggleIcon,
   updateMenuActive,
 } from "../shared/theme.js";
+import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
+
+  const STORAGE_RATING_STARS = "ratingStars";
+  const STORAGE_RATING_FOOTER_HIDDEN = "ratingFooterHidden";
+
+  const STORE_REVIEW_URL_CHROME =
+    "https://chromewebstore.google.com/detail/epoch-buddy/ehjdbcbcfobnkanngnjlibodhgdbhkam/reviews";
+
+  const STORE_REVIEW_URL_FIREFOX =
+    "https://addons.mozilla.org/en-US/firefox/addon/epoch-buddy/reviews/";
+
+  const isFirefoxExtension = () => {
+    try {
+      const m = browser.runtime.getManifest();
+      return Boolean(m.browser_specific_settings?.gecko);
+    } catch {
+      return false;
+    }
+  };
+
+  const getStoreReviewUrl = () =>
+    isFirefoxExtension() ? STORE_REVIEW_URL_FIREFOX : STORE_REVIEW_URL_CHROME;
+
+  const openFeedbackFormForStars = (stars) => {
+    let manifestVersion = "";
+    try {
+      manifestVersion = browser.runtime.getManifest().version ?? "";
+    } catch {
+      manifestVersion = "";
+    }
+    const url = buildFeedbackFormUrl(
+      stars,
+      manifestVersion,
+      isFirefoxExtension(),
+    );
+    openExternal(url);
+  };
+
+  function openExternal(url) {
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
 
   // ── Theme ────────────────────────────────────────────────────────
 
@@ -115,16 +163,24 @@ import {
   const isoInputEl = document.getElementById("iso-input");
   const isoTzSelectEl = document.getElementById("iso-tz-select");
 
+  const ratingFooterEl = document.getElementById("rating-footer");
+  const ratingStepPromptEl = document.getElementById("rating-step-prompt");
+  const ratingStepActionsEl = document.getElementById("rating-step-actions");
+  const ratingStarsRow = document.getElementById("rating-stars-row");
+  const ratingHideFooterBtn = document.getElementById("rating-hide-footer-btn");
+  const ratingAgainBtn = document.getElementById("rating-again-btn");
+  const ratingStarBtns = document.querySelectorAll(".rating-star-btn");
+
   // ── Floating label helper for number inputs ─────────────────────
 
   const syncHasValue = (input) => {
     input.classList.toggle("has-value", input.value !== "");
   };
 
-  const allNumberInputs = dateFormEl
-    .querySelectorAll('input[type="number"]');
-  const relNumberInputs = relativeFormEl
-    .querySelectorAll('input[type="number"]');
+  const allNumberInputs = dateFormEl.querySelectorAll('input[type="number"]');
+  const relNumberInputs = relativeFormEl.querySelectorAll(
+    'input[type="number"]',
+  );
 
   [...allNumberInputs, ...relNumberInputs].forEach((input) => {
     input.addEventListener("input", () => syncHasValue(input));
@@ -847,9 +903,135 @@ import {
     });
   });
 
+  // ── Rating footer (local storage) ─────────────────────────────────
+
+  let lastRatingValue = null;
+
+  const clearStarHoverPreview = () => {
+    delete ratingStarsRow.dataset.hoverRating;
+  };
+
+  /** First visit: stars hidden until user clicks “Rate Extension”. */
+  const showCollapsedRatingPrompt = () => {
+    ratingStepPromptEl.hidden = false;
+    ratingStepActionsEl.hidden = true;
+    ratingStarsRow.hidden = false;
+    clearStarHoverPreview();
+  };
+
+  /** Stars visible (after reveal or “Rate Extension” from post-rating). */
+  const showRatingPrompt = () => {
+    ratingStepPromptEl.hidden = false;
+    ratingStepActionsEl.hidden = true;
+    ratingStarsRow.hidden = false;
+    clearStarHoverPreview();
+  };
+
+  const showPostRatingActions = () => {
+    ratingStepPromptEl.hidden = true;
+    ratingStepActionsEl.hidden = false;
+    clearStarHoverPreview();
+  };
+
+  const updateRateAgainLabel = () => {
+    const label = isFirefoxExtension()
+      ? "Rate Add-on Again"
+      : "Rate Extension Again";
+    ratingAgainBtn.textContent = label;
+  };
+
+  const applyRatingFromStorage = (result) => {
+    const raw = result[STORAGE_RATING_STARS];
+    lastRatingValue =
+      typeof raw === "number" && raw >= 1 && raw <= 5 ? raw : null;
+    const hidden = Boolean(result[STORAGE_RATING_FOOTER_HIDDEN]);
+    updateRateAgainLabel();
+    if (hidden) {
+      ratingFooterEl.hidden = true;
+      return;
+    }
+    ratingFooterEl.hidden = false;
+    if (lastRatingValue != null) {
+      showPostRatingActions();
+    } else {
+      showCollapsedRatingPrompt();
+    }
+  };
+
+  const initRatingUi = () => {
+    if (!browser.storage?.local) {
+      ratingFooterEl.hidden = true;
+      return;
+    }
+
+    browser.storage.local.get(
+      {
+        [STORAGE_RATING_STARS]: null,
+        [STORAGE_RATING_FOOTER_HIDDEN]: false,
+      },
+      (result) => {
+        applyRatingFromStorage(result);
+      },
+    );
+
+    ratingStarsRow.addEventListener("mousemove", (e) => {
+      const btn = e.target.closest(".rating-star-btn");
+      if (btn && ratingStarsRow.contains(btn)) {
+        const n = btn.dataset.stars;
+        if (n) ratingStarsRow.dataset.hoverRating = n;
+      }
+    });
+    ratingStarsRow.addEventListener("mouseleave", () => {
+      clearStarHoverPreview();
+    });
+
+    ratingStarsRow.addEventListener("focusin", (e) => {
+      const btn = e.target.closest(".rating-star-btn");
+      if (btn && ratingStarsRow.contains(btn) && btn.dataset.stars) {
+        ratingStarsRow.dataset.hoverRating = btn.dataset.stars;
+      }
+    });
+    ratingStarsRow.addEventListener("focusout", (e) => {
+      if (!ratingStarsRow.contains(e.relatedTarget)) {
+        clearStarHoverPreview();
+      }
+    });
+
+    ratingStarBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const n = Number(btn.dataset.stars);
+        if (!n) return;
+        browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
+          lastRatingValue = n;
+          if (n <= 3) {
+            openFeedbackFormForStars(n);
+          } else {
+            openExternal(getStoreReviewUrl());
+          }
+          showPostRatingActions();
+        });
+      });
+    });
+
+    ratingHideFooterBtn.addEventListener("click", () => {
+      browser.storage.local.set(
+        { [STORAGE_RATING_FOOTER_HIDDEN]: true },
+        () => {
+          ratingFooterEl.hidden = true;
+        },
+      );
+    });
+
+    ratingAgainBtn.addEventListener("click", () => {
+      showRatingPrompt();
+      browser.storage.local.remove(STORAGE_RATING_STARS);
+    });
+  };
+
   // ── Init ──────────────────────────────────────────────────────────
 
   loadHistory();
   populateDateTimeFields(false);
   populateRelativeDefaults();
+  initRatingUi();
 })();

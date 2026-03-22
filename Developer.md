@@ -25,9 +25,11 @@ src/
 extension/             # Extension package (HTML, CSS, manifest + BUILT JS)
 docs/                  # GitHub Pages website (HTML, CSS + BUILT demo.js)
 scripts/build.mjs      # Build, watch, and packaging script
+feedback-form.config.json  # Google Form base URL + entry keys (1–3 star feedback); used by build
 ```
 
 Source code lives in `src/`. The build step bundles each entry point into self-contained IIFE files that the extension and website reference directly.
+Before bundling, the build emits `src/shared/generated/feedbackFormConfig.js` from `feedback-form.config.json` (do not edit the generated file by hand).
 
 ### Key shared modules
 
@@ -37,6 +39,7 @@ Source code lives in `src/`. The build step bundles each entry point into self-c
 | `shared/formatting.js` | Formats dates, relative time strings, and timezone offsets for display |
 | `shared/clipboard.js` | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback |
 | `shared/theme.js` | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class |
+| `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels |
 
 ### Build commands
 
@@ -56,6 +59,7 @@ Built files:
 - `extension/index.js` -- from `src/popup/main.js`
 - `extension/script.js` -- from `src/content/main.js`
 - `docs/demo.js` -- from `src/demo/main.js`
+- `src/shared/generated/feedbackFormConfig.js` -- from `feedback-form.config.json` (popup 1–3 star feedback links)
 
 ### Local development
 

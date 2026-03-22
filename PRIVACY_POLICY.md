@@ -18,15 +18,15 @@ Specifically, the extension does **not** collect:
 
 ## Data storage
 
-Epoch Buddy uses browser local storage (`browser.storage.local` / equivalent) only to store **your recent conversion history** (up to the last 10 conversions) so it can be displayed in the extension popup.
+Epoch Buddy uses browser local storage (`browser.storage.local` / equivalent) to store **your recent conversion history** (up to the last 10 conversions) so it can be displayed in the extension popup, and **optional** local-only preferences for the in-popup feedback footer (such as whether you chose to hide it and your last star rating).
 
-This history data remains on your device and is not transmitted anywhere.
+This data remains on your device and is not transmitted anywhere by the extension.
 
 You can remove this data at any time using the **Clear history** button in the extension.
 
 ## Permissions
 
-- **Storage**: Used to store recent conversion history locally.
+- **Storage**: Used to store recent conversion history and optional feedback footer preferences locally.
 - **Host access (`<all_urls>` via content scripts)**: Used to enable the “highlight/select an epoch on any webpage and convert” feature. The extension reads only the text you select to perform the conversion and display the result.
 
 ## Third-party services

@@ -1,0 +1,37 @@
+---
+description: Epoch Buddy project outline and esbuild source-of-truth guidance
+alwaysApply: true
+---
+
+# Epoch Buddy Project Context
+
+## Product Surfaces
+
+- This package includes four user-facing surfaces: the extension menu/popup, the extension content script, the demo website, and the listing/marketing pages.
+- Treat changes as part of one product: keep terminology, timestamp behavior, privacy claims, and offline-first messaging aligned across those surfaces.
+- Preserve the product promise: fast epoch/date conversion, no external network dependency, and no telemetry by default.
+
+## Nomenclature
+
+- Popup: The extension menu/popup which contains the conversion tabs and history.
+- Content Script: The extension content-script which adds popup to the page on selection.
+- Demo: The demo website hosted on GitHub Pages.
+- Listing: The listing/marketing pages for the extension in the Chrome Web Store and Firefox Add-ons.
+
+## Source Of Truth
+
+- `src/popup/main.js` is the source for the extension menu logic.
+- `src/content/main.js` is the source for the extension content-script logic.
+- `src/demo/main.js` is the source for the demo website logic.
+- `src/shared/*.js` contains shared behavior used across surfaces.
+- `docs/index.html`, `docs/privacy.html`, `docs/terms.html`, `docs/styles.css`, and `docs/nav.js` are hand-authored listing/site files.
+
+## Build outputs (do not hand-edit)
+
+- **esbuild** bundles `src/**` entry points to `extension/index.js`, `extension/script.js`, `docs/demo.js`, and `docs/nav.js`.
+- Do not manually edit those generated files unless the task is explicitly about build artifacts; change `src/**`, or `scripts/build.mjs`, then run `npm run build`.
+
+## Working Preference
+
+- When the request touches extension behavior, decide whether it belongs to popup code, content-script code, demo code, or listing-page content before editing.
+- Reuse shared helpers instead of duplicating timestamp parsing, formatting, clipboard, or theme logic across surfaces.
