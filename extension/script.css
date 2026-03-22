@@ -2,14 +2,16 @@
 #epoch-buddy-popup {
   position: absolute;
   z-index: 2147483647;
-  max-width: 380px;
+  max-width: 360px;
   padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   background: #ffffff;
   color: #1f2937;
   font-size: 12.5px;
-  font-family: "JetBrains Mono", "SF Mono", "Consolas", "Liberation Mono", "Menlo", monospace;
+  font-family:
+    "JetBrains Mono", "SF Mono", "Consolas", "Liberation Mono", "Menlo",
+    monospace;
   line-height: 1.5;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
   pointer-events: auto;
@@ -38,14 +40,14 @@
 
 /* Arrow on top edge (popup below selection -> arrow points up) */
 #epoch-buddy-popup.eb-arrow-top::before {
-  content: '';
+  content: "";
   top: -7px;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
   border-bottom: 7px solid #e2e8f0;
 }
 #epoch-buddy-popup.eb-arrow-top::after {
-  content: '';
+  content: "";
   top: -6px;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
@@ -61,14 +63,14 @@
 
 /* Arrow on bottom edge (popup above selection -> arrow points down) */
 #epoch-buddy-popup.eb-arrow-bottom::before {
-  content: '';
+  content: "";
   bottom: -7px;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
   border-top: 7px solid #e2e8f0;
 }
 #epoch-buddy-popup.eb-arrow-bottom::after {
-  content: '';
+  content: "";
   bottom: -6px;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
@@ -133,7 +135,9 @@
   border: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
   box-shadow: none !important;
 }
 
