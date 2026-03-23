@@ -11,23 +11,30 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
 - **On-page selection**: Select a 10 or 13 digit epoch on any website to see an inline conversion popup.
 
-  ![on-page selection popup](docs/assets/screenshots/popup.png)
+  <img src="docs/assets/screenshots/ext-script-popup.png" alt="on-page selection popup" height="250">
 
 - **Epoch to Date**: Paste or type an epoch and get UTC, Local, and Relative time. A dedicated clock button copies the current millisecond timestamp to your clipboard and populates the input field.
 
-  ![epoch to date](docs/assets/screenshots/extension-1.png)
+  <img src="docs/assets/screenshots/ext-menu-epoch-to-date.png" alt="epoch to date" height="400">
 
 - **Date to Epoch**: Enter date/time using numeric fields with inline validation. Time presets (Now, Start of Day, End of Day) sit alongside the time fields for quick access. Switch to **ISO string mode** to paste an ISO 8601 value (e.g. `2026-03-19T12:00:00.000Z`) with an optional fallback timezone selector.
 
-  ![date to epoch](docs/assets/screenshots/extension-2.png)
+  <img src="docs/assets/screenshots/ext-menu-date-to-epoch.png" alt="date to epoch" height="400">
+
+  <img src="docs/assets/screenshots/ext-menu-iso-date-string-to-epoch.png" alt="date to epoch iso string mode" height="400">
 
 - **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch, UTC, Local, and Relative time. Overflow values are automatically normalized on blur (e.g. 90 minutes becomes 1 hour 30 minutes).
 
-  ![relative to epoch](docs/assets/screenshots/extension-3.png)
+  <img src="docs/assets/screenshots/ext-menu-relative-to-epoch.png" alt="relative to epoch" height="400">
 
 - **Smart validation**: All numeric fields enforce min/max ranges, show per-field error highlighting, and default to zero on blur for time fields (date fields require a value).
 - **History**: Last 10 conversions with quick copy buttons and a clear button.
 - **Dark Mode**: Supports dark mode in both the extension menu and the popup.
+
+  <img src="docs/assets/screenshots/ext-menu-dark-mode.png" alt="Dark mode" height="400">
+
+  <img src="docs/assets/screenshots/ext-script-popup-dark-mode.png" alt="Script Popup Dark mode" height="250">
+
 - **Timezone display**: The extension popup header shows the current IANA timezone and UTC offset.
 - **Feedback (v1.5+)**: Optional footer with a 5-star flow — lower ratings can open your Google Form, higher ratings the Chrome or Firefox store review page (URLs wired at build time). The footer is pinned to the bottom of the popup; you can dismiss it locally until reinstall.
 
@@ -78,7 +85,7 @@ Pack commands always produce a clean zip for each browser regardless of the curr
 
 ## Project structure
 
-```
+```bash
 src/
   shared/            # Shared utilities (formatting, parsing, clipboard)
   popup/main.js      # Extension popup entry point

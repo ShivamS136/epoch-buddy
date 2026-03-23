@@ -335,8 +335,8 @@ button img {
 
 .screenshot-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
 }
 
 .feature-list {
