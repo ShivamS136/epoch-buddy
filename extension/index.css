@@ -96,7 +96,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  width: 360px;
+  width: 380px;
   max-height: 560px;
   min-height: 0;
   padding: 8px;

@@ -2,7 +2,7 @@
 #epoch-buddy-popup {
   position: absolute;
   z-index: 2147483647;
-  max-width: 360px;
+  max-width: 380px;
   padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -20,6 +20,9 @@
   column-gap: 6px;
   row-gap: 4px;
   align-items: baseline;
+}
+#epoch-buddy-popup .epoch-buddy-value:last-child {
+  grid-column: span 2;
 }
 
 #epoch-buddy-popup.eb-dark {
