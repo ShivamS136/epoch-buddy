@@ -1,6 +1,6 @@
 {
   "name": "epoch-buddy",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "Convert Epoch to Human Readable Time — browser extension and demo site",
   "scripts": {

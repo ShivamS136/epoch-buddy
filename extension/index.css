@@ -96,7 +96,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  width: 380px;
+  width: 390px;
   max-height: 560px;
   min-height: 0;
   padding: 8px;
@@ -524,6 +524,9 @@ button:hover {
   align-items: baseline;
   font-size: 12px;
   line-height: 1.5;
+}
+#result .result-value:last-child {
+  grid-column: span 2;
 }
 
 .result[hidden] {

@@ -340,6 +340,8 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
     if (row.copy) {
       targetEl.appendChild(createCopyButton(row.copy));
+    } else if (row.isRelative) {
+      // no copy button for relative results and no empty span
     } else {
       targetEl.appendChild(document.createElement("span"));
     }
