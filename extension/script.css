@@ -2,7 +2,7 @@
 #epoch-buddy-popup {
   position: absolute;
   z-index: 2147483647;
-  max-width: 380px;
+  max-width: 450px;
   padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -16,7 +16,7 @@
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
   pointer-events: auto;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: minmax(0, auto) auto auto auto;
   column-gap: 6px;
   row-gap: 4px;
   align-items: baseline;
@@ -90,7 +90,7 @@
 .epoch-buddy-label {
   font-weight: 700;
   color: #0f172a;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .eb-dark .epoch-buddy-label {

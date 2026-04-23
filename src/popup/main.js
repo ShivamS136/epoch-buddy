@@ -12,6 +12,11 @@ import {
   buildConversionData,
   formatTimeOnly,
   formatTimeZoneOffset,
+  formatTimestampInZone,
+  formatOffsetInZone,
+  zoneDisplayLabel,
+  buildZoneRows,
+  zoneOffsetMinutes,
 } from "../shared/formatting.js";
 import {
   parseEpoch,
@@ -29,6 +34,13 @@ import {
   updateToggleIcon,
   updateMenuActive,
 } from "../shared/theme.js";
+import {
+  DEFAULT_TIMEZONES,
+  loadTimezonesFromStorage,
+  saveTimezonesToStorage,
+  onTimezonesChanged,
+  getAvailableTimezones,
+} from "../shared/timezones.js";
 import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
 (() => {
@@ -86,10 +98,13 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
   const themeToggleBtn = document.getElementById("theme-toggle-btn");
   const themeMenu = document.getElementById("theme-menu");
 
+  const settingsThemeMenu = document.getElementById("settings-theme-menu");
+
   const setTheme = (preference) => {
     applyTheme(preference);
     updateToggleIcon(themeToggleBtn, preference);
     updateMenuActive(themeMenu, preference);
+    updateMenuActive(settingsThemeMenu, preference);
     saveThemeToStorage(preference);
   };
 
@@ -97,7 +112,16 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     applyTheme(pref);
     updateToggleIcon(themeToggleBtn, pref);
     updateMenuActive(themeMenu, pref);
+    updateMenuActive(settingsThemeMenu, pref);
   });
+
+  if (settingsThemeMenu) {
+    settingsThemeMenu.addEventListener("click", (e) => {
+      const option = e.target.closest("[data-theme-option]");
+      if (!option) return;
+      setTheme(option.dataset.themeOption);
+    });
+  }
 
   themeToggleBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -169,7 +193,23 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
   const ratingStarsRow = document.getElementById("rating-stars-row");
   const ratingHideFooterBtn = document.getElementById("rating-hide-footer-btn");
   const ratingAgainBtn = document.getElementById("rating-again-btn");
-  const ratingStarBtns = document.querySelectorAll(".rating-star-btn");
+  const ratingStarBtns = document.querySelectorAll(
+    "#rating-stars-row .rating-star-btn",
+  );
+
+  const mainViewEl = document.getElementById("main-view");
+  const settingsViewEl = document.getElementById("settings-view");
+  const settingsBtn = document.getElementById("settings-btn");
+  const settingsBackBtn = document.getElementById("settings-back-btn");
+  const tzListEl = document.getElementById("tz-list");
+  const tzAddSelectEl = document.getElementById("tz-add-select");
+  const tzAddBtn = document.getElementById("tz-add-btn");
+  const settingsStarsRow = document.getElementById("settings-stars-row");
+  const settingsStarBtns = settingsStarsRow
+    ? settingsStarsRow.querySelectorAll(".rating-star-btn")
+    : [];
+
+  let currentZones = DEFAULT_TIMEZONES.slice();
 
   // ── Floating label helper for number inputs ─────────────────────
 
@@ -347,63 +387,60 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     }
   };
 
-  const renderEpochToDateResult = (epochMs, conversion) => {
-    resultEl.replaceChildren
-      ? resultEl.replaceChildren()
-      : (resultEl.textContent = "");
+  const buildDisplayRows = (epochMs, conversion, relativeOverride) => {
     const rows = [
       { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
       { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-      { label: "UTC", value: conversion.utc, copy: conversion.utc },
-      {
-        label: `Local (${conversion.tzLabel})`,
-        value: conversion.localTimestamp,
-        copy: conversion.localTimestamp,
-      },
-      { label: "Relative", value: conversion.relative, isRelative: true },
     ];
+    buildZoneRows(epochMs, currentZones).forEach((zoneRow) => {
+      rows.push({
+        label: zoneRow.label,
+        value: zoneRow.displayValue,
+        copy: zoneRow.copyValue,
+      });
+    });
+    rows.push({
+      label: "Relative",
+      value: relativeOverride != null ? relativeOverride : conversion.relative,
+      isRelative: true,
+    });
+    return rows;
+  };
 
-    rows.forEach((row) => appendResultRow(resultEl, row));
+  let lastResultEpochMs = null;
+  let lastDateResultEpochMs = null;
+  let lastRelativeResult = null;
+
+  const renderEpochToDateResult = (epochMs, conversion) => {
+    lastResultEpochMs = epochMs;
+    resultEl.replaceChildren
+      ? resultEl.replaceChildren()
+      : (resultEl.textContent = "");
+    buildDisplayRows(epochMs, conversion).forEach((row) =>
+      appendResultRow(resultEl, row),
+    );
     resultEl.hidden = false;
   };
 
   const renderDateToEpochResult = (epochMs, conversion) => {
+    lastDateResultEpochMs = epochMs;
     dateResultEl.replaceChildren
       ? dateResultEl.replaceChildren()
       : (dateResultEl.textContent = "");
-    const rows = [
-      { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
-      { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-      { label: "UTC", value: conversion.utc, copy: conversion.utc },
-      {
-        label: `Local (${conversion.tzLabel})`,
-        value: conversion.localTimestamp,
-        copy: conversion.localTimestamp,
-      },
-      { label: "Relative", value: conversion.relative, isRelative: true },
-    ];
-
-    rows.forEach((row) => appendResultRow(dateResultEl, row));
+    buildDisplayRows(epochMs, conversion).forEach((row) =>
+      appendResultRow(dateResultEl, row),
+    );
     dateResultEl.hidden = false;
   };
 
   const renderRelativeResult = (epochMs, conversion, relativeLabel) => {
+    lastRelativeResult = { epochMs, relativeLabel };
     relativeResultEl.replaceChildren
       ? relativeResultEl.replaceChildren()
       : (relativeResultEl.textContent = "");
-    const rows = [
-      { label: "Epoch (s)", value: conversion.epochS, copy: conversion.epochS },
-      { label: "Epoch (ms)", value: String(epochMs), copy: String(epochMs) },
-      { label: "UTC", value: conversion.utc, copy: conversion.utc },
-      {
-        label: `Local (${conversion.tzLabel})`,
-        value: conversion.localTimestamp,
-        copy: conversion.localTimestamp,
-      },
-      { label: "Relative", value: relativeLabel, isRelative: true },
-    ];
-
-    rows.forEach((row) => appendResultRow(relativeResultEl, row));
+    buildDisplayRows(epochMs, conversion, relativeLabel).forEach((row) =>
+      appendResultRow(relativeResultEl, row),
+    );
     relativeResultEl.hidden = false;
   };
 
@@ -489,12 +526,9 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
         String(entry.epochMs),
         String(entry.epochMs),
       );
-      addHistoryLine("UTC", conversion.utc, conversion.utc);
-      addHistoryLine(
-        `Local (${conversion.tzLabel})`,
-        conversion.localTimestamp,
-        conversion.localTimestamp,
-      );
+      buildZoneRows(entry.epochMs, currentZones).forEach((zoneRow) => {
+        addHistoryLine(zoneRow.label, zoneRow.displayValue, zoneRow.copyValue);
+      });
 
       item.appendChild(linesGrid);
 
@@ -572,8 +606,40 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     });
   };
 
+  const getNowFieldsInZone = (zone) => {
+    const now = new Date();
+    const lower = String(zone).toLowerCase();
+    if (lower === "utc") {
+      return {
+        hour: now.getUTCHours(),
+        minute: now.getUTCMinutes(),
+        second: now.getUTCSeconds(),
+        ms: now.getUTCMilliseconds(),
+      };
+    }
+    if (lower === "local") {
+      return {
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        ms: now.getMilliseconds(),
+      };
+    }
+    // Parse wall-clock hour/min/sec in the requested zone; ms is TZ-agnostic.
+    const ts = formatTimestampInZone(now, zone);
+    // ts is "YYYY-MM-DD HH:MM:SS.sss"
+    const timePart = ts.slice(11);
+    const [hhmmss, msStr] = timePart.split(".");
+    const [hh, mm, ss] = hhmmss.split(":");
+    return {
+      hour: Number(hh),
+      minute: Number(mm),
+      second: Number(ss),
+      ms: Number(msStr),
+    };
+  };
+
   const applyTimePreset = (preset) => {
-    const useUtc = timezoneSelectEl.value === "utc";
     if (preset === "sod") {
       timeHourEl.value = 0;
       timeMinuteEl.value = 0;
@@ -585,13 +651,11 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       timeSecondEl.value = 59;
       timeMsEl.value = 999;
     } else if (preset === "now") {
-      const now = new Date();
-      timeHourEl.value = useUtc ? now.getUTCHours() : now.getHours();
-      timeMinuteEl.value = useUtc ? now.getUTCMinutes() : now.getMinutes();
-      timeSecondEl.value = useUtc ? now.getUTCSeconds() : now.getSeconds();
-      timeMsEl.value = useUtc
-        ? now.getUTCMilliseconds()
-        : now.getMilliseconds();
+      const fields = getNowFieldsInZone(timezoneSelectEl.value || "local");
+      timeHourEl.value = fields.hour;
+      timeMinuteEl.value = fields.minute;
+      timeSecondEl.value = fields.second;
+      timeMsEl.value = fields.ms;
     }
     timeFields.forEach(syncHasValue);
     setActivePreset(preset);
@@ -797,26 +861,51 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       dateErrorEl.textContent = ms.error;
       return;
     }
-    const useUtc = timezoneSelectEl.value === "utc";
-    const epochMs = useUtc
-      ? Date.UTC(
-          dateParts.year,
-          dateParts.month - 1,
-          dateParts.day,
-          hour.value,
-          minute.value,
-          second.value,
-          ms.value,
-        )
-      : new Date(
-          dateParts.year,
-          dateParts.month - 1,
-          dateParts.day,
-          hour.value,
-          minute.value,
-          second.value,
-          ms.value,
-        ).getTime();
+    const selectedZone = timezoneSelectEl.value || "local";
+    const zoneLower = selectedZone.toLowerCase();
+    let epochMs;
+    if (zoneLower === "utc") {
+      epochMs = Date.UTC(
+        dateParts.year,
+        dateParts.month - 1,
+        dateParts.day,
+        hour.value,
+        minute.value,
+        second.value,
+        ms.value,
+      );
+    } else if (zoneLower === "local") {
+      epochMs = new Date(
+        dateParts.year,
+        dateParts.month - 1,
+        dateParts.day,
+        hour.value,
+        minute.value,
+        second.value,
+        ms.value,
+      ).getTime();
+    } else {
+      const utcGuess = Date.UTC(
+        dateParts.year,
+        dateParts.month - 1,
+        dateParts.day,
+        hour.value,
+        minute.value,
+        second.value,
+        ms.value,
+      );
+      const offsetMin = zoneOffsetMinutes(
+        dateParts.year,
+        dateParts.month,
+        dateParts.day,
+        hour.value,
+        minute.value,
+        second.value,
+        ms.value,
+        selectedZone,
+      );
+      epochMs = utcGuess - offsetMin * 60000;
+    }
 
     const conversion = buildConversionData(epochMs);
     renderDateToEpochResult(epochMs, conversion);
@@ -825,7 +914,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       dateParts.day,
     )} ${pad2(hour.value)}:${pad2(minute.value)}:${pad2(second.value)}.${pad3(
       ms.value,
-    )} ${useUtc ? "UTC" : "Local"}`;
+    )} ${zoneDisplayLabel(selectedZone)}`;
 
     saveHistory({
       source: "date",
@@ -1030,10 +1119,363 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     });
   };
 
+  // ── Timezone select (Date → Epoch input) ─────────────────────────
+
+  const populateZoneOptions = (selectEl) => {
+    if (!selectEl) return;
+    const prev = selectEl.value;
+    selectEl.replaceChildren
+      ? selectEl.replaceChildren()
+      : (selectEl.textContent = "");
+    currentZones.forEach((zone) => {
+      const opt = document.createElement("option");
+      opt.value = zone;
+      opt.textContent = zoneDisplayLabel(zone);
+      selectEl.appendChild(opt);
+    });
+    if (prev && currentZones.includes(prev)) {
+      selectEl.value = prev;
+    } else {
+      selectEl.value = currentZones[0];
+    }
+  };
+
+  const populateTimezoneSelect = () => {
+    populateZoneOptions(timezoneSelectEl);
+    populateZoneOptions(isoTzSelectEl);
+  };
+
+  const refreshVisibleResults = () => {
+    if (!resultEl.hidden && lastResultEpochMs != null) {
+      renderEpochToDateResult(
+        lastResultEpochMs,
+        buildConversionData(lastResultEpochMs),
+      );
+    }
+    if (!dateResultEl.hidden && lastDateResultEpochMs != null) {
+      renderDateToEpochResult(
+        lastDateResultEpochMs,
+        buildConversionData(lastDateResultEpochMs),
+      );
+    }
+    if (!relativeResultEl.hidden && lastRelativeResult) {
+      renderRelativeResult(
+        lastRelativeResult.epochMs,
+        buildConversionData(lastRelativeResult.epochMs),
+        lastRelativeResult.relativeLabel,
+      );
+    }
+    loadHistory();
+  };
+
+  // ── Settings view ──────────────────────────────────────────────
+
+  const showSettingsView = () => {
+    if (!settingsViewEl || !mainViewEl) return;
+    mainViewEl.hidden = true;
+    settingsViewEl.hidden = false;
+    if (ratingFooterEl)
+      ratingFooterEl.dataset.prevHidden = ratingFooterEl.hidden ? "1" : "0";
+    if (ratingFooterEl) ratingFooterEl.hidden = true;
+    renderSettingsView();
+  };
+
+  const showMainView = () => {
+    if (!settingsViewEl || !mainViewEl) return;
+    settingsViewEl.hidden = true;
+    mainViewEl.hidden = false;
+    if (ratingFooterEl && ratingFooterEl.dataset.prevHidden !== undefined) {
+      ratingFooterEl.hidden = ratingFooterEl.dataset.prevHidden === "1";
+      delete ratingFooterEl.dataset.prevHidden;
+    }
+  };
+
+  const createSvg = (pathData, size) => {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("xmlns", ns);
+    svg.setAttribute("width", String(size));
+    svg.setAttribute("height", String(size));
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "none");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", pathData);
+    svg.appendChild(path);
+    return svg;
+  };
+
+  const createGripSvg = () => {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    svg.setAttribute("xmlns", ns);
+    svg.setAttribute("width", "14");
+    svg.setAttribute("height", "14");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("fill", "currentColor");
+    [
+      [9, 5],
+      [9, 12],
+      [9, 19],
+      [15, 5],
+      [15, 12],
+      [15, 19],
+    ].forEach(([cx, cy]) => {
+      const circle = document.createElementNS(ns, "circle");
+      circle.setAttribute("cx", String(cx));
+      circle.setAttribute("cy", String(cy));
+      circle.setAttribute("r", "1.5");
+      svg.appendChild(circle);
+    });
+    return svg;
+  };
+
+  let tzDragFromIdx = null;
+
+  const clearDropIndicators = () => {
+    if (!tzListEl) return;
+    tzListEl
+      .querySelectorAll(".drop-before, .drop-after")
+      .forEach((el) => el.classList.remove("drop-before", "drop-after"));
+  };
+
+  const renderTzList = () => {
+    if (!tzListEl) return;
+    tzListEl.replaceChildren
+      ? tzListEl.replaceChildren()
+      : (tzListEl.textContent = "");
+    const now = new Date();
+    currentZones.forEach((zone, idx) => {
+      const li = document.createElement("li");
+      li.className = "tz-row";
+      li.dataset.idx = String(idx);
+      li.draggable = true;
+
+      const handle = document.createElement("span");
+      handle.className = "tz-drag-handle";
+      handle.title = "Drag to reorder";
+      handle.setAttribute("aria-hidden", "true");
+      handle.appendChild(createGripSvg());
+      li.appendChild(handle);
+
+      const labelWrap = document.createElement("div");
+      labelWrap.className = "tz-row-label";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "tz-row-name";
+      nameEl.textContent = zoneDisplayLabel(zone);
+      labelWrap.appendChild(nameEl);
+
+      const offsetEl = document.createElement("span");
+      offsetEl.className = "tz-row-offset";
+      offsetEl.textContent = formatOffsetInZone(now, zone);
+      labelWrap.appendChild(offsetEl);
+
+      li.appendChild(labelWrap);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "tz-remove-btn";
+      removeBtn.title = "Remove timezone";
+      removeBtn.setAttribute("aria-label", `Remove ${zoneDisplayLabel(zone)}`);
+      removeBtn.appendChild(createSvg("M18 6L6 18M6 6l12 12", 14));
+      if (currentZones.length <= 1) {
+        removeBtn.disabled = true;
+      } else {
+        removeBtn.addEventListener("click", () => {
+          const next = currentZones.slice();
+          next.splice(idx, 1);
+          if (next.length === 0) return;
+          saveTimezonesToStorage(next);
+        });
+      }
+      li.appendChild(removeBtn);
+
+      li.addEventListener("dragstart", (e) => {
+        tzDragFromIdx = idx;
+        li.classList.add("is-dragging");
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", String(idx));
+        }
+      });
+      li.addEventListener("dragend", () => {
+        li.classList.remove("is-dragging");
+        clearDropIndicators();
+        tzDragFromIdx = null;
+      });
+      li.addEventListener("dragover", (e) => {
+        if (tzDragFromIdx === null) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+        const rect = li.getBoundingClientRect();
+        const before = e.clientY - rect.top < rect.height / 2;
+        clearDropIndicators();
+        if (tzDragFromIdx === idx) return;
+        li.classList.add(before ? "drop-before" : "drop-after");
+      });
+      li.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const fromIdx = tzDragFromIdx;
+        clearDropIndicators();
+        if (fromIdx === null || fromIdx === idx) return;
+        const rect = li.getBoundingClientRect();
+        const before = e.clientY - rect.top < rect.height / 2;
+        let toIdx = before ? idx : idx + 1;
+        if (toIdx > fromIdx) toIdx -= 1;
+        if (toIdx === fromIdx) return;
+        const next = currentZones.slice();
+        const [moved] = next.splice(fromIdx, 1);
+        next.splice(toIdx, 0, moved);
+        saveTimezonesToStorage(next);
+      });
+
+      tzListEl.appendChild(li);
+    });
+  };
+
+  const renderAddTzSelect = () => {
+    if (!tzAddSelectEl) return;
+    const all = getAvailableTimezones();
+    const available = all.filter((z) => !currentZones.includes(z));
+    tzAddSelectEl.replaceChildren
+      ? tzAddSelectEl.replaceChildren()
+      : (tzAddSelectEl.textContent = "");
+
+    if (available.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "All timezones added";
+      opt.disabled = true;
+      opt.selected = true;
+      tzAddSelectEl.appendChild(opt);
+      if (tzAddBtn) tzAddBtn.disabled = true;
+      return;
+    }
+
+    if (tzAddBtn) tzAddBtn.disabled = false;
+    const now = new Date();
+    const entries = available.map((zone) => {
+      const offsetStr = formatOffsetInZone(now, zone);
+      const m = offsetStr.match(/^([+-])(\d{2}):(\d{2})$/);
+      const offsetMinutes = m
+        ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]))
+        : 0;
+      return { zone, offsetStr, offsetMinutes };
+    });
+    entries.sort(
+      (a, b) =>
+        a.offsetMinutes - b.offsetMinutes ||
+        zoneDisplayLabel(a.zone).localeCompare(zoneDisplayLabel(b.zone)),
+    );
+    entries.forEach(({ zone, offsetStr }) => {
+      const opt = document.createElement("option");
+      opt.value = zone;
+      opt.textContent = `${zoneDisplayLabel(zone)} (${offsetStr})`;
+      tzAddSelectEl.appendChild(opt);
+    });
+    const defaultZone = entries.find((e) => e.zone === "utc")
+      ? "utc"
+      : entries[0].zone;
+    tzAddSelectEl.value = defaultZone;
+  };
+
+  const renderSettingsThemeMenu = (pref) => {
+    updateMenuActive(settingsThemeMenu, pref);
+  };
+
+  const renderSettingsView = () => {
+    renderTzList();
+    renderAddTzSelect();
+  };
+
+  if (tzAddBtn && tzAddSelectEl) {
+    tzAddBtn.addEventListener("click", () => {
+      const zone = tzAddSelectEl.value;
+      if (!zone || currentZones.includes(zone)) return;
+      saveTimezonesToStorage([...currentZones, zone]);
+    });
+  }
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener("click", () => {
+      showSettingsView();
+    });
+  }
+  if (settingsBackBtn) {
+    settingsBackBtn.addEventListener("click", () => {
+      showMainView();
+    });
+  }
+
+  settingsStarBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const n = Number(btn.dataset.stars);
+      if (!n) return;
+      if (browser?.storage?.local) {
+        browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
+          lastRatingValue = n;
+          if (n <= 3) {
+            openFeedbackFormForStars(n);
+          } else {
+            openExternal(getStoreReviewUrl());
+          }
+          showPostRatingActions();
+        });
+      } else {
+        if (n <= 3) {
+          openFeedbackFormForStars(n);
+        } else {
+          openExternal(getStoreReviewUrl());
+        }
+      }
+    });
+  });
+
+  if (settingsStarsRow) {
+    settingsStarsRow.addEventListener("mousemove", (e) => {
+      const btn = e.target.closest(".rating-star-btn");
+      if (btn && settingsStarsRow.contains(btn)) {
+        const n = btn.dataset.stars;
+        if (n) settingsStarsRow.dataset.hoverRating = n;
+      }
+    });
+    settingsStarsRow.addEventListener("mouseleave", () => {
+      delete settingsStarsRow.dataset.hoverRating;
+    });
+  }
+
   // ── Init ──────────────────────────────────────────────────────────
 
-  loadHistory();
-  populateDateTimeFields(false);
-  populateRelativeDefaults();
+  loadTimezonesFromStorage((zones) => {
+    currentZones = zones;
+    populateTimezoneSelect();
+    populateDateTimeFields(false);
+    populateRelativeDefaults();
+    renderSettingsView();
+    loadHistory();
+  });
+
+  onTimezonesChanged((zones) => {
+    currentZones = zones;
+    populateTimezoneSelect();
+    renderSettingsView();
+    refreshVisibleResults();
+  });
+
+  loadThemeFromStorage((pref) => {
+    renderSettingsThemeMenu(pref);
+  });
+  if (browser?.storage?.onChanged) {
+    browser.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes.theme) {
+        renderSettingsThemeMenu(changes.theme.newValue || "system");
+      }
+    });
+  }
+
   initRatingUi();
 })();

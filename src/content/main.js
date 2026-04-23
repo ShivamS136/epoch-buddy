@@ -5,7 +5,7 @@
  * floating popup with converted timestamps.
  */
 
-import { buildConversionData } from "../shared/formatting.js";
+import { buildConversionData, buildZoneRows } from "../shared/formatting.js";
 import { parseEpoch } from "../shared/parsing.js";
 import { createCopyButton } from "../shared/clipboard.js";
 import {
@@ -13,6 +13,11 @@ import {
   resolveTheme,
   onSystemThemeChange,
 } from "../shared/theme.js";
+import {
+  DEFAULT_TIMEZONES,
+  loadTimezonesFromStorage,
+  onTimezonesChanged,
+} from "../shared/timezones.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
@@ -23,6 +28,8 @@ import {
   let popupEl = null;
   let lastSelectionText = "";
   let themePref = "system";
+  let currentZones = DEFAULT_TIMEZONES.slice();
+  let lastSelection = null;
 
   const copyBtnOpts = {
     className: "epoch-buddy-copy",
@@ -45,6 +52,41 @@ import {
     if (themePref === "system") applyPopupTheme();
   });
 
+  loadTimezonesFromStorage((zones) => {
+    currentZones = zones;
+  });
+
+  onTimezonesChanged((zones) => {
+    currentZones = zones;
+    if (popupEl && lastSelection) {
+      const conversion = buildConversionData(lastSelection.epochMs);
+      const formatted = [
+        {
+          label: "Epoch (s)",
+          value: conversion.epochS,
+          copyValue: conversion.epochS,
+        },
+        {
+          label: "Epoch (ms)",
+          value: lastSelection.epochMs,
+          copyValue: lastSelection.epochMs,
+        },
+        ...buildZoneRows(lastSelection.epochMs, currentZones).map((row) => ({
+          label: row.label,
+          value: row.displayValue,
+          copyValue: row.copyValue,
+        })),
+        {
+          label: "Relative",
+          value: conversion.relative,
+          isRelative: true,
+          noCopy: true,
+        },
+      ];
+      renderPopup(lastSelection.rect, formatted);
+    }
+  });
+
   if (browser?.storage?.onChanged) {
     browser.storage.onChanged.addListener((changes, area) => {
       if (area === "local" && changes.theme) {
@@ -61,6 +103,7 @@ import {
       popupEl.remove();
       popupEl = null;
     }
+    lastSelection = null;
   };
 
   const createPopupEl = () => {
@@ -279,16 +322,11 @@ import {
         value: epochMs,
         copyValue: epochMs,
       },
-      {
-        label: "UTC",
-        value: conversion.utc,
-        copyValue: conversion.utc,
-      },
-      {
-        label: `Local (${conversion.tzLabel})`,
-        value: conversion.localTimestamp,
-        copyValue: conversion.localTimestamp,
-      },
+      ...buildZoneRows(epochMs, currentZones).map((row) => ({
+        label: row.label,
+        value: row.displayValue,
+        copyValue: row.copyValue,
+      })),
       {
         label: "Relative",
         value: conversion.relative,
@@ -296,6 +334,7 @@ import {
         noCopy: true,
       },
     ];
+    lastSelection = { rect, epochMs };
     renderPopup(rect, formatted);
 
     saveHistory({

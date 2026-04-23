@@ -81,6 +81,108 @@
       relative: formatRelative(epochMs)
     };
   };
+  var ZONE_FORMATTER_CACHE = /* @__PURE__ */ new Map();
+  var getZoneFormatter = (timeZone) => {
+    if (!ZONE_FORMATTER_CACHE.has(timeZone)) {
+      ZONE_FORMATTER_CACHE.set(
+        timeZone,
+        new Intl.DateTimeFormat("en-GB", {
+          timeZone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false
+        })
+      );
+    }
+    return ZONE_FORMATTER_CACHE.get(timeZone);
+  };
+  var canonZone = (zone) => {
+    if (!zone) return "local";
+    const lower = String(zone).toLowerCase();
+    if (lower === "local") return "local";
+    if (lower === "utc") return "utc";
+    return zone;
+  };
+  var zoneDisplayLabel = (zone) => {
+    const c = canonZone(zone);
+    if (c === "local") return "Local";
+    if (c === "utc") return "UTC";
+    return c;
+  };
+  var formatTimestampInZone = (date, zone) => {
+    const c = canonZone(zone);
+    if (c === "local") return formatLocalTimestamp(date);
+    if (c === "utc") return formatUtcTimestamp(date);
+    let year = "0000";
+    let month = "01";
+    let day = "01";
+    let hour = "00";
+    let minute = "00";
+    let second = "00";
+    try {
+      const parts = getZoneFormatter(c).formatToParts(date);
+      for (const p of parts) {
+        if (p.type === "year") year = p.value;
+        else if (p.type === "month") month = p.value;
+        else if (p.type === "day") day = p.value;
+        else if (p.type === "hour") hour = p.value === "24" ? "00" : p.value;
+        else if (p.type === "minute") minute = p.value;
+        else if (p.type === "second") second = p.value;
+      }
+    } catch {
+      return formatUtcTimestamp(date);
+    }
+    const millis = pad3(date.getUTCMilliseconds());
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}.${millis}`;
+  };
+  var formatOffsetInZone = (date, zone) => {
+    const c = canonZone(zone);
+    if (c === "local") return formatTimeZoneOffset(date, true);
+    if (c === "utc") return "+00:00";
+    try {
+      const fmt = new Intl.DateTimeFormat("en-US", {
+        timeZone: c,
+        timeZoneName: "longOffset"
+      });
+      const parts = fmt.formatToParts(date);
+      const tzPart = parts.find((p) => p.type === "timeZoneName");
+      if (tzPart?.value) {
+        const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
+        if (match) {
+          const sign = match[1];
+          const hours = pad2(match[2]);
+          const minutes = pad2(match[3] || "0");
+          return `${sign}${hours}:${minutes}`;
+        }
+        if (/^GMT$/i.test(tzPart.value) || /^UTC$/i.test(tzPart.value)) {
+          return "+00:00";
+        }
+      }
+    } catch {
+    }
+    return "+00:00";
+  };
+  var buildZoneRows = (epochMs, zones) => {
+    const date = new Date(epochMs);
+    const list = Array.isArray(zones) && zones.length > 0 ? zones : ["local"];
+    return list.map((zone) => {
+      const timestamp = formatTimestampInZone(date, zone);
+      const offset = formatOffsetInZone(date, zone);
+      const display = zoneDisplayLabel(zone);
+      return {
+        zone,
+        label: `${display} (${offset})`,
+        timestamp,
+        offset,
+        displayValue: timestamp,
+        copyValue: timestamp
+      };
+    });
+  };
 
   // src/shared/parsing.js
   var EPOCH_SECONDS_REGEX = /^\d{10}$/;
@@ -163,6 +265,39 @@
     });
   }
 
+  // src/shared/timezones.js
+  var TIMEZONES_KEY = "timezones";
+  var DEFAULT_TIMEZONES = ["local", "utc"];
+  var isNonEmptyString = (v) => typeof v === "string" && v.trim() !== "";
+  function sanitize(list) {
+    if (!Array.isArray(list)) return null;
+    const cleaned = list.filter(isNonEmptyString).map((s) => s.trim());
+    return cleaned.length > 0 ? cleaned : null;
+  }
+  function loadTimezonesFromStorage(callback) {
+    const browser = globalThis.browser || globalThis.chrome;
+    if (!browser?.storage?.local) {
+      callback(DEFAULT_TIMEZONES.slice());
+      return;
+    }
+    browser.storage.local.get({ [TIMEZONES_KEY]: null }, (result) => {
+      const cleaned = sanitize(result[TIMEZONES_KEY]);
+      callback(cleaned || DEFAULT_TIMEZONES.slice());
+    });
+  }
+  function onTimezonesChanged(callback) {
+    const browser = globalThis.browser || globalThis.chrome;
+    if (!browser?.storage?.onChanged) return () => {
+    };
+    const listener = (changes, area) => {
+      if (area !== "local" || !changes[TIMEZONES_KEY]) return;
+      const cleaned = sanitize(changes[TIMEZONES_KEY].newValue);
+      callback(cleaned || DEFAULT_TIMEZONES.slice());
+    };
+    browser.storage.onChanged.addListener(listener);
+    return () => browser.storage.onChanged.removeListener(listener);
+  }
+
   // src/content/main.js
   (() => {
     const browser = globalThis.browser || globalThis.chrome;
@@ -170,6 +305,8 @@
     let popupEl = null;
     let lastSelectionText = "";
     let themePref = "system";
+    let currentZones = DEFAULT_TIMEZONES.slice();
+    let lastSelection = null;
     const copyBtnOpts = {
       className: "epoch-buddy-copy",
       successClass: "epoch-buddy-copy-success",
@@ -187,6 +324,39 @@
     onSystemThemeChange(() => {
       if (themePref === "system") applyPopupTheme();
     });
+    loadTimezonesFromStorage((zones) => {
+      currentZones = zones;
+    });
+    onTimezonesChanged((zones) => {
+      currentZones = zones;
+      if (popupEl && lastSelection) {
+        const conversion = buildConversionData(lastSelection.epochMs);
+        const formatted = [
+          {
+            label: "Epoch (s)",
+            value: conversion.epochS,
+            copyValue: conversion.epochS
+          },
+          {
+            label: "Epoch (ms)",
+            value: lastSelection.epochMs,
+            copyValue: lastSelection.epochMs
+          },
+          ...buildZoneRows(lastSelection.epochMs, currentZones).map((row) => ({
+            label: row.label,
+            value: row.displayValue,
+            copyValue: row.copyValue
+          })),
+          {
+            label: "Relative",
+            value: conversion.relative,
+            isRelative: true,
+            noCopy: true
+          }
+        ];
+        renderPopup(lastSelection.rect, formatted);
+      }
+    });
     if (browser?.storage?.onChanged) {
       browser.storage.onChanged.addListener((changes, area) => {
         if (area === "local" && changes.theme) {
@@ -200,6 +370,7 @@
         popupEl.remove();
         popupEl = null;
       }
+      lastSelection = null;
     };
     const createPopupEl = () => {
       if (popupEl) {
@@ -370,16 +541,11 @@
           value: epochMs,
           copyValue: epochMs
         },
-        {
-          label: "UTC",
-          value: conversion.utc,
-          copyValue: conversion.utc
-        },
-        {
-          label: `Local (${conversion.tzLabel})`,
-          value: conversion.localTimestamp,
-          copyValue: conversion.localTimestamp
-        },
+        ...buildZoneRows(epochMs, currentZones).map((row) => ({
+          label: row.label,
+          value: row.displayValue,
+          copyValue: row.copyValue
+        })),
         {
           label: "Relative",
           value: conversion.relative,
@@ -387,6 +553,7 @@
           noCopy: true
         }
       ];
+      lastSelection = { rect, epochMs };
       renderPopup(rect, formatted);
       saveHistory({
         source: "epoch",

@@ -102,6 +102,52 @@
       relative: formatRelative(epochMs)
     };
   };
+  var canonZone = (zone) => {
+    if (!zone) return "local";
+    const lower = String(zone).toLowerCase();
+    if (lower === "local") return "local";
+    if (lower === "utc") return "utc";
+    return zone;
+  };
+  var zoneOffsetMinutes = (year, month, day, hour, minute, second, ms, zone) => {
+    const c = canonZone(zone);
+    if (c === "utc") return 0;
+    if (c === "local") {
+      return -new Date(
+        year,
+        month - 1,
+        day,
+        hour,
+        minute,
+        second,
+        ms
+      ).getTimezoneOffset();
+    }
+    const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second, ms);
+    const offset1 = offsetMinutesAt(utcGuess, c);
+    const adjusted = utcGuess - offset1 * 6e4;
+    const offset2 = offsetMinutesAt(adjusted, c);
+    return offset2;
+  };
+  var offsetMinutesAt = (instantMs, timeZone) => {
+    try {
+      const fmt = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        timeZoneName: "longOffset"
+      });
+      const parts = fmt.formatToParts(new Date(instantMs));
+      const tzPart = parts.find((p) => p.type === "timeZoneName");
+      if (!tzPart?.value) return 0;
+      const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
+      if (!match) return 0;
+      const sign = match[1] === "-" ? -1 : 1;
+      const hours = Number(match[2]);
+      const minutes = Number(match[3] || 0);
+      return sign * (hours * 60 + minutes);
+    } catch {
+      return 0;
+    }
+  };
 
   // src/shared/parsing.js
   var EPOCH_SECONDS_REGEX = /^\d{10}$/;
@@ -138,17 +184,43 @@
     }
     return { value: Math.floor(number) };
   };
+  var ISO_WALLCLOCK_REGEX = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?$/;
   var parseIsoString = (isoStr, fallbackTz) => {
     const trimmed = isoStr.trim();
     if (!trimmed) {
       return { error: "ISO string is required." };
     }
     const hasOffset = /[Zz]$/.test(trimmed) || /[+-]\d{2}:\d{2}$/.test(trimmed) || /[+-]\d{4}$/.test(trimmed);
-    let dateStr = trimmed;
-    if (!hasOffset && fallbackTz === "utc") {
-      dateStr = trimmed + "Z";
+    if (hasOffset || !fallbackTz) {
+      const date2 = new Date(trimmed);
+      if (Number.isNaN(date2.getTime())) {
+        return { error: "Invalid ISO 8601 string." };
+      }
+      return { value: date2.getTime() };
     }
-    const date = new Date(dateStr);
+    const match = trimmed.match(ISO_WALLCLOCK_REGEX);
+    if (match) {
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      const hour = Number(match[4]);
+      const minute = Number(match[5]);
+      const second = match[6] ? Number(match[6]) : 0;
+      const millis = match[7] ? Number(match[7].padEnd(3, "0")) : 0;
+      const offsetMin = zoneOffsetMinutes(
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        second,
+        millis,
+        fallbackTz
+      );
+      const utcMs = Date.UTC(year, month - 1, day, hour, minute, second, millis);
+      return { value: utcMs - offsetMin * 6e4 };
+    }
+    const date = new Date(trimmed);
     if (Number.isNaN(date.getTime())) {
       return { error: "Invalid ISO 8601 string." };
     }

@@ -96,7 +96,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  width: 390px;
+  width: 400px;
   max-height: 560px;
   min-height: 0;
   padding: 8px;
@@ -455,6 +455,10 @@ input[type="number"] {
   display: none;
 }
 
+.iso-input-group .floating-field {
+  min-width: 120px;
+}
+
 .iso-input-group .floating-field label {
   top: 0;
   font-size: 9px;
@@ -518,7 +522,7 @@ button:hover {
     "JetBrains Mono", "SF Mono", "Consolas", "Liberation Mono", "Menlo",
     monospace;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: minmax(0, auto) auto auto auto;
   column-gap: 6px;
   row-gap: 4px;
   align-items: baseline;
@@ -536,7 +540,7 @@ button:hover {
 .result-label {
   font-weight: 700;
   color: var(--text-primary);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .result-colon {
@@ -687,7 +691,7 @@ button:hover {
 
 .history-lines {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: minmax(0, auto) auto auto auto;
   column-gap: 6px;
   row-gap: 4px;
   align-items: baseline;
@@ -702,7 +706,7 @@ button:hover {
 .history-label {
   font-weight: 700;
   color: var(--text-primary);
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .history-value {
@@ -825,6 +829,345 @@ button:hover {
   width: 14px;
   height: 14px;
   flex-shrink: 0;
+}
+
+/* Inline variant — used in the Settings page. Same item styling as the
+   header dropdown, but laid out as a static segmented row. */
+.theme-menu-inline {
+  position: static;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  box-shadow: none;
+  background: var(--bg-muted);
+}
+
+.theme-menu-inline .theme-menu-item {
+  flex: 1;
+  justify-content: center;
+  padding: 8px 6px;
+  font-size: 12px;
+}
+
+.theme-menu-inline .theme-menu-item.is-active {
+  background: var(--bg-card);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Settings toggle button (header icon) ──────────────────────── */
+
+.settings-toggle-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.settings-toggle-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.settings-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Settings view ─────────────────────────────────────────────── */
+
+.settings-view[hidden] {
+  display: none;
+}
+
+.settings-header {
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.settings-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.settings-back-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.settings-section {
+  margin-top: 12px;
+  padding: 10px 12px 12px;
+}
+
+.settings-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.settings-section-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.settings-section-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.tz-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.tz-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--result-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.tz-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--text-dim);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.tz-drag-handle:hover {
+  color: var(--text-secondary);
+}
+
+.tz-drag-handle svg {
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.tz-row.is-dragging {
+  opacity: 0.4;
+}
+
+.tz-row.is-dragging .tz-drag-handle {
+  cursor: grabbing;
+}
+
+.tz-row.drop-before::before,
+.tz-row.drop-after::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.tz-row.drop-before::before {
+  top: -4px;
+}
+
+.tz-row.drop-after::after {
+  bottom: -4px;
+}
+
+.tz-row-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tz-row-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family:
+    "JetBrains Mono", "SF Mono", "Consolas", "Liberation Mono", "Menlo",
+    monospace;
+}
+
+.tz-row-offset {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tz-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.tz-remove-btn:hover:not(:disabled) {
+  background: var(--bg-muted);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.tz-remove-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tz-remove-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tz-add-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+#tz-add-btn {
+  flex-shrink: 0;
+}
+
+.settings-rate-text {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.settings-stars-row {
+  justify-content: flex-start;
+  margin-top: 2px;
+}
+
+.settings-about .settings-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  border: 1px solid var(--border-input);
+  background: var(--result-bg);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  justify-content: center;
+  flex: 1;
+}
+
+.settings-about .settings-link:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.settings-link-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 0;
+  color: var(--text-primary);
+}
+
+.settings-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.settings-about .chai4me-link {
+  background: #fff4ea;
+  border-color: #e9cbb0;
+}
+
+.settings-about .chai4me-link:hover {
+  background: #ffeddd;
+  border-color: #e9cbb0;
+}
+
+.chai4me-wordmark {
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+
+.chai4me-handle {
+  color: #6b7280;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .hint {

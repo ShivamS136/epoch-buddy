@@ -2,6 +2,8 @@
  * Shared epoch/date parsing utilities.
  */
 
+import { zoneOffsetMinutes } from "./formatting.js";
+
 export const EPOCH_SECONDS_REGEX = /^\d{10}$/;
 export const EPOCH_MILLISECONDS_REGEX = /^\d{13}$/;
 
@@ -80,6 +82,9 @@ export const parseTimePart = (value, max, label) => {
   return { value: Math.floor(number) };
 };
 
+const ISO_WALLCLOCK_REGEX =
+  /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?$/;
+
 export const parseIsoString = (isoStr, fallbackTz) => {
   const trimmed = isoStr.trim();
   if (!trimmed) {
@@ -90,12 +95,38 @@ export const parseIsoString = (isoStr, fallbackTz) => {
     /[+-]\d{2}:\d{2}$/.test(trimmed) ||
     /[+-]\d{4}$/.test(trimmed);
 
-  let dateStr = trimmed;
-  if (!hasOffset && fallbackTz === "utc") {
-    dateStr = trimmed + "Z";
+  if (hasOffset || !fallbackTz) {
+    const date = new Date(trimmed);
+    if (Number.isNaN(date.getTime())) {
+      return { error: "Invalid ISO 8601 string." };
+    }
+    return { value: date.getTime() };
   }
 
-  const date = new Date(dateStr);
+  const match = trimmed.match(ISO_WALLCLOCK_REGEX);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const hour = Number(match[4]);
+    const minute = Number(match[5]);
+    const second = match[6] ? Number(match[6]) : 0;
+    const millis = match[7] ? Number(match[7].padEnd(3, "0")) : 0;
+    const offsetMin = zoneOffsetMinutes(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      second,
+      millis,
+      fallbackTz,
+    );
+    const utcMs = Date.UTC(year, month - 1, day, hour, minute, second, millis);
+    return { value: utcMs - offsetMin * 60_000 };
+  }
+
+  const date = new Date(trimmed);
   if (Number.isNaN(date.getTime())) {
     return { error: "Invalid ISO 8601 string." };
   }

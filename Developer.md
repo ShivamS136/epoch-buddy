@@ -105,6 +105,8 @@ npm run pack           # both
 
 Pack commands always produce a clean zip for the target browser, regardless of the current state of `extension/manifest.json`.
 
+Pack also runs verification on the bundled output and fails if any bundled JS assigns to `.innerHTML` or if any dotfile made it into the zip. Use `textContent` / `createElement` in extension code instead of `.innerHTML =`.
+
 ### Input conventions
 
 - All numeric inputs use `type="number"` with explicit `min`/`max` attributes. Native spinner arrows are hidden via CSS.
