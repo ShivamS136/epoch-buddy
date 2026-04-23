@@ -9,27 +9,28 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
 ## Features
 
-- **On-page selection**: Select a 10 or 13 digit epoch on any website to see an inline conversion popup.
+- **On-page selection**: Select a 10 or 13 digit epoch on any website to see an inline conversion popup with one row per timezone you have configured.
 
   <img src="docs/assets/screenshots/ext-script-popup.png" alt="on-page selection popup" height="250">
 
-- **Epoch to Date**: Paste or type an epoch and get UTC, Local, and Relative time. A dedicated clock button copies the current millisecond timestamp to your clipboard and populates the input field.
+- **Epoch to Date**: Paste or type an epoch and get a row per configured timezone (each with its UTC offset) plus Relative time. A dedicated clock button copies the current millisecond timestamp to your clipboard and populates the input field.
 
   <img src="docs/assets/screenshots/ext-menu-epoch-to-date.png" alt="epoch to date" height="400">
 
-- **Date to Epoch**: Enter date/time using numeric fields with inline validation. Time presets (Now, Start of Day, End of Day) sit alongside the time fields for quick access. Switch to **ISO string mode** to paste an ISO 8601 value (e.g. `2026-03-19T12:00:00.000Z`) with an optional fallback timezone selector.
+- **Date to Epoch**: Enter date/time using numeric fields with inline validation. Pick any of your configured timezones from the dropdown (Local, UTC, or any IANA zone). Time presets (Now, Start of Day, End of Day) sit alongside the time fields for quick access. Switch to **ISO string mode** to paste an ISO 8601 value (e.g. `2026-03-19T12:00:00.000Z`); if the string has no offset, the fallback-timezone picker resolves it against any of your configured zones.
 
   <img src="docs/assets/screenshots/ext-menu-date-to-epoch.png" alt="date to epoch" height="400">
 
   <img src="docs/assets/screenshots/ext-menu-iso-date-string-to-epoch.png" alt="date to epoch iso string mode" height="400">
 
-- **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch, UTC, Local, and Relative time. Overflow values are automatically normalized on blur (e.g. 90 minutes becomes 1 hour 30 minutes).
+- **Relative to Epoch**: Enter a duration (ago / from now) and get Epoch plus per-configured-zone timestamps and Relative time. Overflow values are automatically normalized on blur (e.g. 90 minutes becomes 1 hour 30 minutes).
 
   <img src="docs/assets/screenshots/ext-menu-relative-to-epoch.png" alt="relative to epoch" height="400">
 
+- **Timezone settings (v1.6+)**: Open the gear icon in the header to add any IANA timezone, remove ones you do not need, and drag-and-drop to reorder. The configured list drives the on-page popup, all three converter tabs, history entries, and the ISO fallback-timezone picker.
 - **Smart validation**: All numeric fields enforce min/max ranges, show per-field error highlighting, and default to zero on blur for time fields (date fields require a value).
-- **History**: Last 10 conversions with quick copy buttons and a clear button.
-- **Dark Mode**: Supports dark mode in both the extension menu and the popup.
+- **History**: Last 10 conversions with quick copy buttons and a clear button. Each entry expands to show per-timezone rows.
+- **Dark Mode**: Supports dark mode in both the extension menu and the popup. A polished segmented theme picker appears in both the header and the Settings page.
 
   <img src="docs/assets/screenshots/ext-menu-dark-mode.png" alt="Dark mode" height="400">
 

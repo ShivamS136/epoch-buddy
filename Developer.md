@@ -15,10 +15,11 @@ npm install
 ```
 src/
   shared/              # Shared utilities
-    formatting.js      #   Date/time formatting helpers
+    formatting.js      #   Date/time formatting helpers (incl. zoneOffsetMinutes)
     parsing.js         #   Input parsing & validation (epoch, date fields, ISO, relative)
     clipboard.js       #   Copy-to-clipboard with visual feedback
     theme.js           #   Dark/light/system theme management
+    timezones.js       #   User-configurable timezone list (storage + sync)
   popup/main.js        # Extension popup entry point
   content/main.js      # Content script entry point
   demo/main.js         # Docs demo page entry point
@@ -33,29 +34,31 @@ Before bundling, the build emits `src/shared/generated/feedbackFormConfig.js` fr
 
 ### Key shared modules
 
-| Module | Purpose |
-|--------|---------|
-| `shared/parsing.js` | `parseEpoch`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` -- validates and normalizes all user input |
-| `shared/formatting.js` | Formats dates, relative time strings, and timezone offsets for display |
-| `shared/clipboard.js` | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback |
-| `shared/theme.js` | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class |
-| `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels |
+| Module                      | Purpose                                                                                                                                                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/parsing.js`         | `parseEpoch`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` -- validates and normalizes all user input. `parseIsoString` accepts any IANA zone (not just `utc`) as the fallback and resolves offset-less strings via `zoneOffsetMinutes` |
+| `shared/formatting.js`      | Formats dates, relative time strings, and timezone offsets for display. Also exports `buildZoneRows`, `zoneDisplayLabel`, `formatOffsetInZone`, `zoneOffsetMinutes` for multi-zone rendering                                                                              |
+| `shared/clipboard.js`       | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback                                                                                                                                          |
+| `shared/theme.js`           | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class                                                                                                                                                                         |
+| `shared/timezones.js`       | User-configurable timezone list: `DEFAULT_TIMEZONES`, `isValidTimezone`, `getAvailableTimezones`, `load/saveTimezonesToStorage`, `onTimezonesChanged` (storage sync across surfaces)                                                                                      |
+| `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels                                                                                                                             |
 
 ### Build commands
 
-| Command | What it does |
-|---------|-------------|
-| `npm run build` | One-shot JS build (manifest unchanged) |
-| `npm run build:chrome` | JS build + set manifest for Chrome/Edge |
-| `npm run build:firefox` | JS build + set manifest for Firefox |
-| `npm run watch` | Watch mode, rebuild on change (manifest unchanged) |
-| `npm run watch:chrome` | Watch mode + set manifest for Chrome/Edge |
-| `npm run watch:firefox` | Watch mode + set manifest for Firefox (restores on exit) |
-| `npm run pack:chrome` | Build + zip for Chrome (`dist/chrome.zip`) |
-| `npm run pack:firefox` | Build + zip for Firefox (`dist/firefox.zip`, manifest patched) |
-| `npm run pack` | Build both zips |
+| Command                 | What it does                                                   |
+| ----------------------- | -------------------------------------------------------------- |
+| `npm run build`         | One-shot JS build (manifest unchanged)                         |
+| `npm run build:chrome`  | JS build + set manifest for Chrome/Edge                        |
+| `npm run build:firefox` | JS build + set manifest for Firefox                            |
+| `npm run watch`         | Watch mode, rebuild on change (manifest unchanged)             |
+| `npm run watch:chrome`  | Watch mode + set manifest for Chrome/Edge                      |
+| `npm run watch:firefox` | Watch mode + set manifest for Firefox (restores on exit)       |
+| `npm run pack:chrome`   | Build + zip for Chrome (`dist/chrome.zip`)                     |
+| `npm run pack:firefox`  | Build + zip for Firefox (`dist/firefox.zip`, manifest patched) |
+| `npm run pack`          | Build both zips                                                |
 
 Built files:
+
 - `extension/index.js` -- from `src/popup/main.js`
 - `extension/script.js` -- from `src/content/main.js`
 - `docs/demo.js` -- from `src/demo/main.js`
@@ -114,4 +117,11 @@ Pack also runs verification on the bundled output and fails if any bundled JS as
 - **Date fields** (year, month, day) show a `.field-error` highlight on blur if left empty.
 - **Time fields** (hour, minute, second, ms) default to `0` on blur if empty or invalid.
 - **Relative fields** auto-normalize overflow on blur via `normalizeRelativeFields` (e.g. 90 minutes → 1 hour 30 minutes).
-- The **ISO input mode** in Date → Epoch flips the manual fields to a single text input. It pre-fills with `new Date().toISOString()` on toggle and validates on blur via `parseIsoString`.
+- The **ISO input mode** in Date → Epoch flips the manual fields to a single text input. It pre-fills with `new Date().toISOString()` on toggle and validates on blur via `parseIsoString`. The fallback-timezone picker is populated from the user-configured zone list (same source as the manual-mode zone picker).
+
+### Settings page & timezone list
+
+- The Settings view (`#settings-view` in `extension/index.html`) is toggled in-popup from the header gear icon.
+- The user-configured timezone list is stored in `chrome.storage.local` via `shared/timezones.js`. All surfaces (popup converter tabs, content-script popup, history rows) subscribe via `onTimezonesChanged` and re-render on change.
+- The timezone list in Settings is drag-and-drop reorderable (native HTML5 drag/drop on `.tz-row` with a grip handle); on drop the array is reordered and persisted via `saveTimezonesToStorage`, which fans out the change.
+- The Settings theme picker uses the same `theme-menu` markup + `data-theme-option` click delegation as the header menu, styled with the `.theme-menu-inline` modifier. Both menus stay in sync through `updateMenuActive`.

@@ -17,11 +17,14 @@ FEATURES
 
 1) Highlight-to-Convert on Any Webpage
 Select any epoch timestamp on any website and get an instant inline popup showing:
-  - GMT / UTC time
-  - Local time in your timezone
+  - Epoch in seconds and milliseconds
+  - One row per timezone you have configured (Local, UTC, or any IANA zone you
+    pick in Settings — e.g. Asia/Kolkata, America/Los_Angeles)
+  - Each row includes the UTC offset and full timestamp
   - Relative time (e.g. "3 hours ago" or "in 2 days")
   - One-click copy buttons for each value
-Works on regular text, input fields, and text areas across every website.
+Long timezone labels wrap cleanly without breaking layout. Works on regular
+text, input fields, and text areas across every website.
 
 2) Popup Converter with Three Powerful Modes
 Click the extension icon to open a clean, keyboard-friendly popup with three tabs.
@@ -32,16 +35,19 @@ Your current timezone and UTC offset are shown in the header at a glance.
   auto-fills with the current epoch and live-refreshes every second. Pause it
   by clicking in — it resumes when you clear the field. A dedicated clock
   button copies the current millisecond timestamp and fills the input field.
-  Output: Epoch (ms), GMT/UTC, Local time, Relative time.
+  Output: Epoch (s), Epoch (ms), one row per configured timezone with its UTC
+  offset, and Relative time.
 
   B) Date to Epoch
   Enter a date and time using validated numeric fields (year, month, day, hour,
-  minute, second, millisecond) with per-field error highlighting. Switch between
-  Local and GMT/UTC timezone. Time presets — Start of Day, End of Day, or
-  Current Time — sit inline with the time fields for quick access.
+  minute, second, millisecond) with per-field error highlighting. Pick any of
+  your configured timezones from the dropdown — not just Local and UTC. Time
+  presets — Start of Day, End of Day, or Current Time — sit inline with the
+  time fields for quick access.
   Click "Convert ISO String" to flip the form into ISO 8601 mode: paste an ISO
-  string (e.g. 2026-03-19T12:00:00.000Z) with an optional fallback timezone
-  selector, then convert. Click "Enter Date Manually" to flip back.
+  string (e.g. 2026-03-19T12:00:00.000Z) and, when the string has no offset,
+  pick any of your configured zones as the fallback. Click "Enter Date
+  Manually" to flip back.
   Output: Epoch (ms), Epoch (s), Relative time.
 
   C) Relative to Epoch
@@ -49,19 +55,30 @@ Your current timezone and UTC offset are shown in the header at a glance.
   combination of Days, Hours, Minutes, Seconds, and Milliseconds. Overflow
   values are automatically normalized (e.g. 90 minutes becomes 1h 30m). Smart
   display shows only relevant units — no clutter.
-  Output: Epoch (ms), UTC/UTC, Local time, Relative time.
+  Output: Epoch (s), Epoch (ms), one row per configured timezone, and Relative
+  time.
 
 3) Conversion History
-Your last 10 conversions are saved locally with quick copy buttons. View them
+Your last 10 conversions are saved locally with quick copy buttons. Each entry
+expands to show per-timezone rows for every zone you have configured. View them
 anytime in the History section. Clear all history with one click. Nothing is
 sent to any server — everything stays in your browser.
 
-4) Dark Mode
-Full dark mode support that follows your system preference, or set it manually
-to Light, Dark, or System. Applied across both the popup and the on-page
-conversion tooltip.
+4) Timezone Settings
+Open the gear icon in the header to manage your timezones. Add any IANA zone
+(e.g. Europe/London, Asia/Tokyo, America/New_York), remove ones you do not
+need, and drag-and-drop to reorder them. Your configured list drives every
+output surface: the on-page popup, all three converter tabs, the history
+entries, and the ISO fallback-timezone dropdown — so your preferred zones
+always show up in your preferred order.
 
-5) One-Click Copy
+5) Dark Mode
+Full dark mode support that follows your system preference, or set it manually
+to Light, Dark, or System. The same polished, segmented theme picker is
+available both in the header menu and in the Settings page. Applied across the
+popup and the on-page conversion tooltip.
+
+6) One-Click Copy
 Every converted value comes with a copy button. Hover over any result row in the
 on-page popup or click the copy icon in the extension popup. Copies to clipboard
 instantly.
@@ -95,6 +112,21 @@ PERFECT FOR
 - Database administrators inspecting epoch columns
 - Anyone tired of Googling "epoch to date converter"
 
+
+WHAT'S NEW IN v1.6.0
+
+- Settings page accessible from the header gear icon
+- Add any IANA timezone to your list (Europe/London, Asia/Tokyo, and hundreds
+  more), remove ones you do not need, and drag-and-drop to reorder
+- Converter results, the on-page popup, and history entries all now show one
+  row per configured timezone — no more being locked to Local and UTC
+- ISO-string fallback timezone picker now uses your configured zones, so you
+  can resolve offset-less ISO strings against any zone you use
+- Theme picker in Settings matches the polished header menu (segmented
+  control with Light / Dark / System icons)
+- Long timezone labels wrap gracefully in both the on-page popup and the
+  extension popup — no more layout distortion for names like
+  "America/Argentina/Buenos_Aires"
 
 WHAT'S NEW IN v1.5.0
 
