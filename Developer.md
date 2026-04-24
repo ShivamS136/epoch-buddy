@@ -106,7 +106,7 @@ Built files:
 
 There is a single `extension/manifest.json` that serves as the base (Chrome/Edge MV3). Firefox-specific settings (`browser_specific_settings.gecko`) are added or removed by the build script:
 
-- `--browser firefox` adds Firefox fields to the manifest, rewrites `background: { service_worker: ... }` to `background: { scripts: [...] }` (Firefox MV3 doesn't accept `service_worker`), and sets `data_collection_permissions.required: ["technicalAndInteraction"]` on the `gecko` settings
+- `--browser firefox` adds Firefox fields to the manifest (`browser_specific_settings.gecko.id` and `data_collection_permissions.required: ["technicalAndInteraction"]`) and rewrites `background: { service_worker: ... }` to `background: { scripts: [...] }` (Firefox MV3 doesn't accept `service_worker`). The AMO upload form also asks about data collection — the form and manifest answers should match.
 - `--browser chrome` strips Firefox fields and resets `background` to the MV3 `service_worker` form
 - `--pack firefox` patches the manifest in a temporary directory (does not modify the source)
 

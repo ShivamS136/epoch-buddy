@@ -143,12 +143,16 @@ export const ANALYTICS_CONFIG = {
 
 // ── Firefox-specific manifest additions ─────────────────────────
 
+// Firefox built-in data consent: declare the data we collect.
+// "technicalAndInteraction" covers anonymous usage analytics (event names,
+// extension version, browser target). See https://mzl.la/firefox-builtin-data-consent
 const FIREFOX_MANIFEST_EXTRAS = {
   browser_specific_settings: {
     gecko: {
       id: "epoch-buddy.shivams136@github.com",
       data_collection_permissions: {
-        required: ["technicalAndInteraction"],
+        required: ["none"],
+        optional: ["technicalAndInteraction"],
       },
     },
   },
