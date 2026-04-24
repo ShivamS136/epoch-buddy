@@ -18,6 +18,7 @@ import {
   loadTimezonesFromStorage,
   onTimezonesChanged,
 } from "../shared/timezones.js";
+import { EVENTS, trackEvent } from "../shared/analytics.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
@@ -65,16 +66,20 @@ import {
           label: "Epoch (s)",
           value: conversion.epochS,
           copyValue: conversion.epochS,
+          row: "epoch_s",
         },
         {
           label: "Epoch (ms)",
           value: lastSelection.epochMs,
           copyValue: lastSelection.epochMs,
+          row: "epoch_ms",
         },
         ...buildZoneRows(lastSelection.epochMs, currentZones).map((row) => ({
           label: row.label,
           value: row.displayValue,
           copyValue: row.copyValue,
+          row: "zone",
+          zone: row.zone,
         })),
         {
           label: "Relative",
@@ -115,6 +120,19 @@ import {
     el.id = POPUP_ID;
     el.setAttribute("role", "dialog");
     el.setAttribute("aria-live", "polite");
+    el.addEventListener(
+      "click",
+      (ev) => {
+        const btn = ev.target.closest?.(".epoch-buddy-copy");
+        if (!btn) return;
+        const row = btn.dataset.row;
+        if (!row) return;
+        const params = { row };
+        if (btn.dataset.zone) params.zone = btn.dataset.zone;
+        trackEvent(EVENTS.FLOATING_COPY_CLICKED, params);
+      },
+      true,
+    );
     document.body.appendChild(el);
     popupEl = el;
     applyPopupTheme();
@@ -205,12 +223,13 @@ import {
       el.appendChild(value);
 
       if (!line.noCopy) {
-        el.appendChild(
-          createCopyButton(
-            typeof line.copyValue === "string" ? line.copyValue : line.value,
-            copyBtnOpts,
-          ),
+        const copyBtn = createCopyButton(
+          typeof line.copyValue === "string" ? line.copyValue : line.value,
+          copyBtnOpts,
         );
+        if (line.row) copyBtn.dataset.row = line.row;
+        if (line.zone) copyBtn.dataset.zone = line.zone;
+        el.appendChild(copyBtn);
       } else {
         el.appendChild(document.createElement("span"));
       }
@@ -316,16 +335,20 @@ import {
         label: "Epoch (s)",
         value: conversion.epochS,
         copyValue: conversion.epochS,
+        row: "epoch_s",
       },
       {
         label: "Epoch (ms)",
         value: epochMs,
         copyValue: epochMs,
+        row: "epoch_ms",
       },
       ...buildZoneRows(epochMs, currentZones).map((row) => ({
         label: row.label,
         value: row.displayValue,
         copyValue: row.copyValue,
+        row: "zone",
+        zone: row.zone,
       })),
       {
         label: "Relative",
@@ -336,6 +359,7 @@ import {
     ];
     lastSelection = { rect, epochMs };
     renderPopup(rect, formatted);
+    trackEvent(EVENTS.FLOATING_POPUP_SHOWN);
 
     saveHistory({
       source: "epoch",

@@ -137,6 +137,40 @@
             </div>
           </header>
 
+          <div
+            class="analytics-notice"
+            id="analytics-notice"
+            role="status"
+            hidden
+          >
+            <span class="analytics-notice-text"
+              >Epoch Buddy now counts anonymous feature usage. Disable in
+              Settings.</span
+            >
+            <button
+              type="button"
+              class="analytics-notice-dismiss"
+              id="analytics-notice-dismiss"
+              aria-label="Dismiss"
+              title="Dismiss"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
           <section class="card">
             <div class="tabs" role="tablist">
               <button
@@ -566,9 +600,31 @@
 
           <section class="card settings-section">
             <div class="settings-section-head">
+              <h2>Analytics</h2>
+            </div>
+            <p class="settings-section-text">
+              Click counts only - no page content, no personal data.<br />
+              <a
+                href="https://shivams136.github.io/epoch-buddy/privacy.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="settings-inline-link"
+                >Privacy policy</a
+              >.
+            </p>
+            <label class="analytics-toggle" for="analytics-opt-in">
+              <input type="checkbox" id="analytics-opt-in" checked />
+              <span class="analytics-toggle-label"
+                >Share anonymous usage stats</span
+              >
+            </label>
+          </section>
+
+          <section class="card settings-section">
+            <div class="settings-section-head">
               <h2>Rate Epoch Buddy</h2>
             </div>
-            <p class="settings-rate-text">
+            <p class="settings-section-text">
               Enjoying the extension? Let us know!
             </p>
             <div

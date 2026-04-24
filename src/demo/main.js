@@ -24,6 +24,12 @@ import {
   normalizeRelativeFields,
 } from "../shared/parsing.js";
 import { createCopyButton, bindLiveCopyButton } from "../shared/clipboard.js";
+import {
+  EVENTS,
+  trackEvent,
+  getOptOut,
+  setOptOut,
+} from "../shared/analytics.js";
 
 // ── DOM references ────────────────────────────────────────────────
 
@@ -158,7 +164,10 @@ const renderHistory = (history) => {
   });
 };
 
-clearHistoryEl.addEventListener("click", clearDemoHistory);
+clearHistoryEl.addEventListener("click", () => {
+  clearDemoHistory();
+  trackEvent(EVENTS.HISTORY_CLEARED, { source: "demo" });
+});
 
 // ── Output helpers ──────────────────────────────────────────────
 
@@ -401,6 +410,10 @@ const applyTimePreset = (preset) => {
 presetChips.forEach((chip) => {
   chip.addEventListener("click", () => {
     applyTimePreset(chip.dataset.preset);
+    trackEvent(EVENTS.DATE_PRESET_USED, {
+      preset: chip.dataset.preset,
+      source: "demo",
+    });
   });
 });
 
@@ -551,6 +564,7 @@ epochSubmitBtn.addEventListener("click", () => {
   }
   epochErrorEl.textContent = "";
   renderEpochOutput(epochMs);
+  trackEvent(EVENTS.EPOCH_TO_DATE, { source: "demo" });
   saveHistory({
     source: "epoch",
     input: epochInput.value.trim(),
@@ -593,6 +607,7 @@ dateSubmitBtn.addEventListener("click", () => {
       true,
     );
     dateErrorEl.textContent = "";
+    trackEvent(EVENTS.UTC_TO_EPOCH, { source: "demo" });
     saveHistory({
       source: "iso",
       input: isoInputEl.value.trim(),
@@ -630,6 +645,7 @@ dateSubmitBtn.addEventListener("click", () => {
     ? Date.UTC(year, month - 1, day, hour, minute, second, ms)
     : new Date(year, month - 1, day, hour, minute, second, ms).getTime();
   if (Number.isNaN(epochMs)) return;
+  trackEvent(EVENTS.DATE_TO_EPOCH, { source: "demo" });
   saveHistory({
     source: "date",
     input: `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(
@@ -653,6 +669,10 @@ relativeSubmitBtn.addEventListener("click", () => {
   }
   const result = renderRelativeOutput();
   if (!result) return;
+  trackEvent(EVENTS.RELATIVE_CALCULATED, {
+    direction: relDir.value === "ago" ? "ago" : "from_now",
+    source: "demo",
+  });
   saveHistory({
     source: "relative",
     display: result.relativeLabel,
@@ -682,3 +702,26 @@ renderRelativeOutput();
 [...dateFields, ...relFields].forEach(syncHasValue);
 
 renderHistory(loadHistory());
+
+// ── Analytics opt-out toggle in footer ──────────────────────────
+
+const analyticsToggleEl = document.getElementById("demo-analytics-toggle");
+if (analyticsToggleEl) {
+  const optInLabel =
+    analyticsToggleEl.dataset.optInLabel || "Disable analytics";
+  const optOutLabel =
+    analyticsToggleEl.dataset.optOutLabel || "Enable analytics";
+  const syncLabel = async () => {
+    const optedOut = await getOptOut();
+    analyticsToggleEl.textContent = optedOut ? optOutLabel : optInLabel;
+  };
+  syncLabel();
+  analyticsToggleEl.addEventListener("click", async (ev) => {
+    ev.preventDefault();
+    const optedOut = await getOptOut();
+    await setOptOut(!optedOut);
+    window.location.reload();
+  });
+}
+
+trackEvent(EVENTS.DEMO_OPENED, { source: "demo" });

@@ -62,11 +62,7 @@ export const createCopyButton = (
 export const bindLiveCopyButton = (
   button,
   valueFn,
-  {
-    successClass = "copy-success",
-    errorClass = "copy-error",
-    onCopy,
-  } = {},
+  { successClass = "copy-success", errorClass = "copy-error", onCopy } = {},
 ) => {
   const ICON_CLOCK_STR =
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';

@@ -413,11 +413,7 @@
     });
     return button;
   };
-  var bindLiveCopyButton = (button, valueFn, {
-    successClass = "copy-success",
-    errorClass = "copy-error",
-    onCopy
-  } = {}) => {
+  var bindLiveCopyButton = (button, valueFn, { successClass = "copy-success", errorClass = "copy-error", onCopy } = {}) => {
     const ICON_CLOCK_STR = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
     const resetButton = () => {
       setIcon(button, ICON_CLOCK_STR);
@@ -483,7 +479,14 @@
     },
     system(size) {
       return buildSvg(size, [
-        svgEl("rect", { x: "2", y: "3", width: "20", height: "14", rx: "2", ry: "2" }),
+        svgEl("rect", {
+          x: "2",
+          y: "3",
+          width: "20",
+          height: "14",
+          rx: "2",
+          ry: "2"
+        }),
         svgEl("line", { x1: "8", y1: "21", x2: "16", y2: "21" }),
         svgEl("line", { x1: "12", y1: "17", x2: "12", y2: "21" })
       ]);
@@ -513,19 +516,19 @@
     });
   }
   function loadThemeFromStorage(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) {
       callback("system");
       return;
     }
-    browser.storage.local.get({ [THEME_KEY]: "system" }, (result) => {
+    browser2.storage.local.get({ [THEME_KEY]: "system" }, (result) => {
       callback(result[THEME_KEY] || "system");
     });
   }
   function saveThemeToStorage(preference) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) return;
-    browser.storage.local.set({ [THEME_KEY]: preference });
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) return;
+    browser2.storage.local.set({ [THEME_KEY]: preference });
   }
 
   // src/shared/timezones.js
@@ -590,12 +593,12 @@
     return ["local", "utc", ...zones.filter((z) => z.toLowerCase() !== "utc")];
   }
   function loadTimezonesFromStorage(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) {
       callback(DEFAULT_TIMEZONES.slice());
       return;
     }
-    browser.storage.local.get({ [TIMEZONES_KEY]: null }, (result) => {
+    browser2.storage.local.get({ [TIMEZONES_KEY]: null }, (result) => {
       const cleaned = sanitize(result[TIMEZONES_KEY]);
       callback(cleaned || DEFAULT_TIMEZONES.slice());
     });
@@ -603,21 +606,21 @@
   function saveTimezonesToStorage(list) {
     const cleaned = sanitize(list);
     if (!cleaned) return;
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) return;
-    browser.storage.local.set({ [TIMEZONES_KEY]: cleaned });
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) return;
+    browser2.storage.local.set({ [TIMEZONES_KEY]: cleaned });
   }
   function onTimezonesChanged(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.onChanged) return () => {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.onChanged) return () => {
     };
     const listener = (changes, area) => {
       if (area !== "local" || !changes[TIMEZONES_KEY]) return;
       const cleaned = sanitize(changes[TIMEZONES_KEY].newValue);
       callback(cleaned || DEFAULT_TIMEZONES.slice());
     };
-    browser.storage.onChanged.addListener(listener);
-    return () => browser.storage.onChanged.removeListener(listener);
+    browser2.storage.onChanged.addListener(listener);
+    return () => browser2.storage.onChanged.removeListener(listener);
   }
 
   // src/shared/generated/feedbackFormConfig.js
@@ -640,10 +643,7 @@
     }
     const url = new URL(FEEDBACK_FORM_BASE_URL);
     url.searchParams.set("usp", "pp_url");
-    url.searchParams.set(
-      FEEDBACK_FORM_ENTRY_KEYS.rating,
-      String(stars)
-    );
+    url.searchParams.set(FEEDBACK_FORM_ENTRY_KEYS.rating, String(stars));
     url.searchParams.set(
       FEEDBACK_FORM_ENTRY_KEYS.version,
       String(manifestVersion ?? "")
@@ -655,16 +655,152 @@
     return url.toString();
   }
 
+  // src/shared/generated/analyticsConfig.js
+  var ANALYTICS_CONFIG = {
+    chrome: {
+      measurement_id: "G-XXXXXXXXXX",
+      api_secret: "CHROME_STREAM_API_SECRET"
+    },
+    firefox: {
+      measurement_id: "G-YYYYYYYYYY",
+      api_secret: "FIREFOX_STREAM_API_SECRET"
+    },
+    demo: {
+      measurement_id: "G-CVXQHWB0WH",
+      tag_id: "G-CVXQHWB0WH"
+    }
+  };
+
+  // src/shared/analytics.js
+  var EVENTS = {
+    POPUP_OPENED: "popup_opened",
+    EPOCH_TO_DATE: "epoch_to_date",
+    DATE_TO_EPOCH: "date_to_epoch",
+    UTC_TO_EPOCH: "utc_to_epoch",
+    RELATIVE_CALCULATED: "relative_calculated",
+    HISTORY_CLEARED: "history_cleared",
+    DATE_PRESET_USED: "date_preset_used",
+    THEME_CHANGED: "theme_changed",
+    SETTINGS_OPENED: "settings_opened",
+    TIMEZONE_MODIFIED: "timezone_modified",
+    EXTERNAL_LINK_CLICKED: "external_link_clicked",
+    RATING_CLICKED: "rating_clicked",
+    RATING_FOOTER_ACTION: "rating_footer_action",
+    FLOATING_POPUP_SHOWN: "floating_popup_shown",
+    FLOATING_COPY_CLICKED: "floating_copy_clicked",
+    DEMO_OPENED: "demo_opened"
+  };
+  var OPT_OUT_STORAGE_KEY = "analyticsOptOut";
+  var DEMO_OPT_OUT_STORAGE_KEY = "epochBuddyAnalyticsOptOut";
+  var browser = typeof globalThis !== "undefined" && (globalThis.browser || globalThis.chrome) || null;
+  var isExtensionRuntime = Boolean(
+    browser && browser.runtime && browser.runtime.id && typeof browser.runtime.sendMessage === "function"
+  );
+  async function getOptOut() {
+    if (isExtensionRuntime && browser.storage?.local) {
+      return new Promise((resolve) => {
+        try {
+          browser.storage.local.get({ [OPT_OUT_STORAGE_KEY]: false }, (res) => {
+            resolve(Boolean(res[OPT_OUT_STORAGE_KEY]));
+          });
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+    if (typeof window !== "undefined") {
+      if (window.navigator?.doNotTrack === "1") return true;
+      try {
+        return window.localStorage.getItem(DEMO_OPT_OUT_STORAGE_KEY) === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+  async function setOptOut(optOut) {
+    if (isExtensionRuntime && browser.storage?.local) {
+      return new Promise((resolve) => {
+        try {
+          browser.storage.local.set(
+            { [OPT_OUT_STORAGE_KEY]: Boolean(optOut) },
+            () => resolve()
+          );
+        } catch {
+          resolve();
+        }
+      });
+    }
+    if (typeof window !== "undefined") {
+      try {
+        if (optOut) {
+          window.localStorage.setItem(DEMO_OPT_OUT_STORAGE_KEY, "1");
+        } else {
+          window.localStorage.removeItem(DEMO_OPT_OUT_STORAGE_KEY);
+        }
+      } catch {
+      }
+    }
+  }
+  var demoGtagReady = false;
+  var demoGtagLoading = false;
+  function ensureDemoGtag() {
+    if (demoGtagReady || demoGtagLoading) return;
+    const tagId = ANALYTICS_CONFIG.demo?.tag_id;
+    if (!tagId || !tagId.startsWith("G-")) return;
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    demoGtagLoading = true;
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`;
+    script.addEventListener("load", () => {
+      demoGtagReady = true;
+    });
+    document.head.appendChild(script);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag("js", /* @__PURE__ */ new Date());
+    window.gtag("config", tagId, { anonymize_ip: true, send_page_view: false });
+  }
+  async function trackEvent(name, params = {}) {
+    if (await getOptOut()) return;
+    if (isExtensionRuntime) {
+      try {
+        browser.runtime.sendMessage({
+          type: "ga:track",
+          name,
+          params
+        });
+      } catch {
+      }
+      return;
+    }
+    if (typeof window === "undefined") return;
+    ensureDemoGtag();
+    const payload = { ...params, source: params.source ?? "demo" };
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", name, payload);
+      } else {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(["event", name, payload]);
+      }
+    } catch {
+    }
+  }
+
   // src/popup/main.js
   (() => {
-    const browser = globalThis.browser || globalThis.chrome;
+    const browser2 = globalThis.browser || globalThis.chrome;
     const STORAGE_RATING_STARS = "ratingStars";
     const STORAGE_RATING_FOOTER_HIDDEN = "ratingFooterHidden";
     const STORE_REVIEW_URL_CHROME = "https://chromewebstore.google.com/detail/epoch-buddy/ehjdbcbcfobnkanngnjlibodhgdbhkam/reviews";
     const STORE_REVIEW_URL_FIREFOX = "https://addons.mozilla.org/en-US/firefox/addon/epoch-buddy/reviews/";
     const isFirefoxExtension = () => {
       try {
-        const m = browser.runtime.getManifest();
+        const m = browser2.runtime.getManifest();
         return Boolean(m.browser_specific_settings?.gecko);
       } catch {
         return false;
@@ -674,7 +810,7 @@
     const openFeedbackFormForStars = (stars) => {
       let manifestVersion = "";
       try {
-        manifestVersion = browser.runtime.getManifest().version ?? "";
+        manifestVersion = browser2.runtime.getManifest().version ?? "";
       } catch {
         manifestVersion = "";
       }
@@ -716,6 +852,10 @@
         const option = e.target.closest("[data-theme-option]");
         if (!option) return;
         setTheme(option.dataset.themeOption);
+        trackEvent(EVENTS.THEME_CHANGED, {
+          theme: option.dataset.themeOption,
+          source: "settings"
+        });
       });
     }
     themeToggleBtn.addEventListener("click", (e) => {
@@ -727,6 +867,10 @@
       if (!option) return;
       setTheme(option.dataset.themeOption);
       themeMenu.hidden = true;
+      trackEvent(EVENTS.THEME_CHANGED, {
+        theme: option.dataset.themeOption,
+        source: "toolbar"
+      });
     });
     document.addEventListener("click", (e) => {
       if (!themeMenu.hidden && !e.target.closest(".theme-toggle")) {
@@ -790,6 +934,14 @@
     const tzAddBtn = document.getElementById("tz-add-btn");
     const settingsStarsRow = document.getElementById("settings-stars-row");
     const settingsStarBtns = settingsStarsRow ? settingsStarsRow.querySelectorAll(".rating-star-btn") : [];
+    const analyticsOptInEl = document.getElementById("analytics-opt-in");
+    const analyticsNoticeEl = document.getElementById("analytics-notice");
+    const analyticsNoticeDismissBtn = document.getElementById(
+      "analytics-notice-dismiss"
+    );
+    const settingsLinks = document.querySelectorAll(
+      "#settings-view .settings-link"
+    );
     let currentZones = DEFAULT_TIMEZONES.slice();
     const syncHasValue = (input) => {
       input.classList.toggle("has-value", input.value !== "");
@@ -882,10 +1034,10 @@
       if (!chrome?.storage?.local) {
         return;
       }
-      browser.storage.local.get({ history: [] }, (result) => {
+      browser2.storage.local.get({ history: [] }, (result) => {
         const history = Array.isArray(result.history) ? result.history : [];
         const next = [entry, ...history].slice(0, 10);
-        browser.storage.local.set({ history: next }, () => {
+        browser2.storage.local.set({ history: next }, () => {
           renderHistory(next);
         });
       });
@@ -895,7 +1047,7 @@
         renderHistory([]);
         return;
       }
-      browser.storage.local.set({ history: [] }, () => {
+      browser2.storage.local.set({ history: [] }, () => {
         renderHistory([]);
       });
     };
@@ -904,7 +1056,7 @@
         renderHistory([]);
         return;
       }
-      browser.storage.local.get({ history: [] }, (result) => {
+      browser2.storage.local.get({ history: [] }, (result) => {
         renderHistory(result.history);
       });
     };
@@ -1060,6 +1212,7 @@
     });
     clearHistoryEl.addEventListener("click", () => {
       clearHistory();
+      trackEvent(EVENTS.HISTORY_CLEARED);
     });
     let epochAutoRefreshActive = true;
     const updateEpochInput = () => {
@@ -1151,6 +1304,7 @@
     presetChips.forEach((chip) => {
       chip.addEventListener("click", () => {
         applyTimePreset(chip.dataset.preset);
+        trackEvent(EVENTS.DATE_PRESET_USED, { preset: chip.dataset.preset });
       });
     });
     timeFields.forEach((input) => {
@@ -1224,6 +1378,7 @@
       }
       const conversion = buildConversionData(epochMs);
       renderEpochToDateResult(epochMs, conversion);
+      trackEvent(EVENTS.EPOCH_TO_DATE);
       saveHistory({
         source: "epoch",
         input: inputValue,
@@ -1247,6 +1402,7 @@
         const epochMs2 = result.value;
         const conversion2 = buildConversionData(epochMs2);
         renderDateToEpochResult(epochMs2, conversion2);
+        trackEvent(EVENTS.UTC_TO_EPOCH);
         saveHistory({
           source: "iso",
           input: isoInputEl.value.trim(),
@@ -1369,6 +1525,7 @@
       }
       const conversion = buildConversionData(epochMs);
       renderDateToEpochResult(epochMs, conversion);
+      trackEvent(EVENTS.DATE_TO_EPOCH);
       const dateLabel = `${dateParts.year}-${pad2(dateParts.month)}-${pad2(
         dateParts.day
       )} ${pad2(hour.value)}:${pad2(minute.value)}:${pad2(second.value)}.${pad3(
@@ -1436,6 +1593,9 @@
         isAgo ? "ago" : "from now"
       );
       renderRelativeResult(epochMs, conversion, relativeLabel);
+      trackEvent(EVENTS.RELATIVE_CALCULATED, {
+        direction: isAgo ? "ago" : "from_now"
+      });
       saveHistory({
         source: "relative",
         display: relativeLabel,
@@ -1485,11 +1645,11 @@
       }
     };
     const initRatingUi = () => {
-      if (!browser.storage?.local) {
+      if (!browser2.storage?.local) {
         ratingFooterEl.hidden = true;
         return;
       }
-      browser.storage.local.get(
+      browser2.storage.local.get(
         {
           [STORAGE_RATING_STARS]: null,
           [STORAGE_RATING_FOOTER_HIDDEN]: false
@@ -1523,7 +1683,8 @@
         btn.addEventListener("click", () => {
           const n = Number(btn.dataset.stars);
           if (!n) return;
-          browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
+          trackEvent(EVENTS.RATING_CLICKED, { rating: n, source: "main" });
+          browser2.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
             lastRatingValue = n;
             if (n <= 3) {
               openFeedbackFormForStars(n);
@@ -1535,7 +1696,8 @@
         });
       });
       ratingHideFooterBtn.addEventListener("click", () => {
-        browser.storage.local.set(
+        trackEvent(EVENTS.RATING_FOOTER_ACTION, { action: "dismissed" });
+        browser2.storage.local.set(
           { [STORAGE_RATING_FOOTER_HIDDEN]: true },
           () => {
             ratingFooterEl.hidden = true;
@@ -1543,8 +1705,9 @@
         );
       });
       ratingAgainBtn.addEventListener("click", () => {
+        trackEvent(EVENTS.RATING_FOOTER_ACTION, { action: "rate_again" });
         showRatingPrompt();
-        browser.storage.local.remove(STORAGE_RATING_STARS);
+        browser2.storage.local.remove(STORAGE_RATING_STARS);
       });
     };
     const populateZoneOptions = (selectEl) => {
@@ -1690,9 +1853,13 @@
         } else {
           removeBtn.addEventListener("click", () => {
             const next = currentZones.slice();
-            next.splice(idx, 1);
+            const [removed] = next.splice(idx, 1);
             if (next.length === 0) return;
             saveTimezonesToStorage(next);
+            trackEvent(EVENTS.TIMEZONE_MODIFIED, {
+              action: "remove",
+              zone: removed
+            });
           });
         }
         li.appendChild(removeBtn);
@@ -1733,6 +1900,10 @@
           const [moved] = next.splice(fromIdx, 1);
           next.splice(toIdx, 0, moved);
           saveTimezonesToStorage(next);
+          trackEvent(EVENTS.TIMEZONE_MODIFIED, {
+            action: "reorder",
+            zone: moved
+          });
         });
         tzListEl.appendChild(li);
       });
@@ -1784,11 +1955,13 @@
         const zone = tzAddSelectEl.value;
         if (!zone || currentZones.includes(zone)) return;
         saveTimezonesToStorage([...currentZones, zone]);
+        trackEvent(EVENTS.TIMEZONE_MODIFIED, { action: "add", zone });
       });
     }
     if (settingsBtn) {
       settingsBtn.addEventListener("click", () => {
         showSettingsView();
+        trackEvent(EVENTS.SETTINGS_OPENED);
       });
     }
     if (settingsBackBtn) {
@@ -1800,8 +1973,9 @@
       btn.addEventListener("click", () => {
         const n = Number(btn.dataset.stars);
         if (!n) return;
-        if (browser?.storage?.local) {
-          browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
+        trackEvent(EVENTS.RATING_CLICKED, { rating: n, source: "settings" });
+        if (browser2?.storage?.local) {
+          browser2.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
             lastRatingValue = n;
             if (n <= 3) {
               openFeedbackFormForStars(n);
@@ -1831,6 +2005,65 @@
         delete settingsStarsRow.dataset.hoverRating;
       });
     }
+    const STORAGE_ANALYTICS_NOTICE_SEEN = "analyticsNoticeSeen";
+    const STORAGE_ANALYTICS_OPT_OUT = "analyticsOptOut";
+    const syncAnalyticsToggle = async () => {
+      if (!analyticsOptInEl) return;
+      const optedOut = await getOptOut();
+      analyticsOptInEl.checked = !optedOut;
+    };
+    if (analyticsOptInEl) {
+      analyticsOptInEl.addEventListener("change", () => {
+        setOptOut(!analyticsOptInEl.checked);
+      });
+      syncAnalyticsToggle();
+    }
+    if (browser2?.storage?.onChanged) {
+      browser2.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes[STORAGE_ANALYTICS_OPT_OUT]) {
+          syncAnalyticsToggle();
+        }
+      });
+    }
+    const maybeShowAnalyticsNotice = () => {
+      if (!analyticsNoticeEl || !browser2?.storage?.local) return;
+      browser2.storage.local.get(
+        {
+          [STORAGE_ANALYTICS_NOTICE_SEEN]: false,
+          [STORAGE_ANALYTICS_OPT_OUT]: null,
+          history: []
+        },
+        (res) => {
+          const seen = Boolean(res[STORAGE_ANALYTICS_NOTICE_SEEN]);
+          if (seen) return;
+          const hasHistory = Array.isArray(res.history) && res.history.length > 0;
+          const explicitOptOut = res[STORAGE_ANALYTICS_OPT_OUT] === true;
+          if (!hasHistory || explicitOptOut) {
+            browser2.storage.local.set({ [STORAGE_ANALYTICS_NOTICE_SEEN]: true });
+            return;
+          }
+          analyticsNoticeEl.hidden = false;
+        }
+      );
+    };
+    if (analyticsNoticeDismissBtn && analyticsNoticeEl) {
+      analyticsNoticeDismissBtn.addEventListener("click", () => {
+        analyticsNoticeEl.hidden = true;
+        if (browser2?.storage?.local) {
+          browser2.storage.local.set({ [STORAGE_ANALYTICS_NOTICE_SEEN]: true });
+        }
+      });
+    }
+    maybeShowAnalyticsNotice();
+    settingsLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        const href = link.getAttribute("href") || "";
+        let target = null;
+        if (href.includes("github.com")) target = "github";
+        else if (href.includes("chai4.me")) target = "chai4me";
+        if (target) trackEvent(EVENTS.EXTERNAL_LINK_CLICKED, { target });
+      });
+    });
     loadTimezonesFromStorage((zones) => {
       currentZones = zones;
       populateTimezoneSelect();
@@ -1838,6 +2071,7 @@
       populateRelativeDefaults();
       renderSettingsView();
       loadHistory();
+      trackEvent(EVENTS.POPUP_OPENED);
     });
     onTimezonesChanged((zones) => {
       currentZones = zones;
@@ -1848,8 +2082,8 @@
     loadThemeFromStorage((pref) => {
       renderSettingsThemeMenu(pref);
     });
-    if (browser?.storage?.onChanged) {
-      browser.storage.onChanged.addListener((changes, area) => {
+    if (browser2?.storage?.onChanged) {
+      browser2.storage.onChanged.addListener((changes, area) => {
         if (area === "local" && changes.theme) {
           renderSettingsThemeMenu(changes.theme.newValue || "system");
         }

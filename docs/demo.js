@@ -278,11 +278,7 @@
     });
     return button;
   };
-  var bindLiveCopyButton = (button, valueFn, {
-    successClass = "copy-success",
-    errorClass = "copy-error",
-    onCopy
-  } = {}) => {
+  var bindLiveCopyButton = (button, valueFn, { successClass = "copy-success", errorClass = "copy-error", onCopy } = {}) => {
     const ICON_CLOCK_STR = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
     const resetButton = () => {
       setIcon(button, ICON_CLOCK_STR);
@@ -306,6 +302,142 @@
       window.setTimeout(resetButton, 1400);
     });
   };
+
+  // src/shared/generated/analyticsConfig.js
+  var ANALYTICS_CONFIG = {
+    chrome: {
+      measurement_id: "G-XXXXXXXXXX",
+      api_secret: "CHROME_STREAM_API_SECRET"
+    },
+    firefox: {
+      measurement_id: "G-YYYYYYYYYY",
+      api_secret: "FIREFOX_STREAM_API_SECRET"
+    },
+    demo: {
+      measurement_id: "G-CVXQHWB0WH",
+      tag_id: "G-CVXQHWB0WH"
+    }
+  };
+
+  // src/shared/analytics.js
+  var EVENTS = {
+    POPUP_OPENED: "popup_opened",
+    EPOCH_TO_DATE: "epoch_to_date",
+    DATE_TO_EPOCH: "date_to_epoch",
+    UTC_TO_EPOCH: "utc_to_epoch",
+    RELATIVE_CALCULATED: "relative_calculated",
+    HISTORY_CLEARED: "history_cleared",
+    DATE_PRESET_USED: "date_preset_used",
+    THEME_CHANGED: "theme_changed",
+    SETTINGS_OPENED: "settings_opened",
+    TIMEZONE_MODIFIED: "timezone_modified",
+    EXTERNAL_LINK_CLICKED: "external_link_clicked",
+    RATING_CLICKED: "rating_clicked",
+    RATING_FOOTER_ACTION: "rating_footer_action",
+    FLOATING_POPUP_SHOWN: "floating_popup_shown",
+    FLOATING_COPY_CLICKED: "floating_copy_clicked",
+    DEMO_OPENED: "demo_opened"
+  };
+  var OPT_OUT_STORAGE_KEY = "analyticsOptOut";
+  var DEMO_OPT_OUT_STORAGE_KEY = "epochBuddyAnalyticsOptOut";
+  var browser = typeof globalThis !== "undefined" && (globalThis.browser || globalThis.chrome) || null;
+  var isExtensionRuntime = Boolean(
+    browser && browser.runtime && browser.runtime.id && typeof browser.runtime.sendMessage === "function"
+  );
+  async function getOptOut() {
+    if (isExtensionRuntime && browser.storage?.local) {
+      return new Promise((resolve) => {
+        try {
+          browser.storage.local.get({ [OPT_OUT_STORAGE_KEY]: false }, (res) => {
+            resolve(Boolean(res[OPT_OUT_STORAGE_KEY]));
+          });
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+    if (typeof window !== "undefined") {
+      if (window.navigator?.doNotTrack === "1") return true;
+      try {
+        return window.localStorage.getItem(DEMO_OPT_OUT_STORAGE_KEY) === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+  async function setOptOut(optOut) {
+    if (isExtensionRuntime && browser.storage?.local) {
+      return new Promise((resolve) => {
+        try {
+          browser.storage.local.set(
+            { [OPT_OUT_STORAGE_KEY]: Boolean(optOut) },
+            () => resolve()
+          );
+        } catch {
+          resolve();
+        }
+      });
+    }
+    if (typeof window !== "undefined") {
+      try {
+        if (optOut) {
+          window.localStorage.setItem(DEMO_OPT_OUT_STORAGE_KEY, "1");
+        } else {
+          window.localStorage.removeItem(DEMO_OPT_OUT_STORAGE_KEY);
+        }
+      } catch {
+      }
+    }
+  }
+  var demoGtagReady = false;
+  var demoGtagLoading = false;
+  function ensureDemoGtag() {
+    if (demoGtagReady || demoGtagLoading) return;
+    const tagId = ANALYTICS_CONFIG.demo?.tag_id;
+    if (!tagId || !tagId.startsWith("G-")) return;
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    demoGtagLoading = true;
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`;
+    script.addEventListener("load", () => {
+      demoGtagReady = true;
+    });
+    document.head.appendChild(script);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag("js", /* @__PURE__ */ new Date());
+    window.gtag("config", tagId, { anonymize_ip: true, send_page_view: false });
+  }
+  async function trackEvent(name, params = {}) {
+    if (await getOptOut()) return;
+    if (isExtensionRuntime) {
+      try {
+        browser.runtime.sendMessage({
+          type: "ga:track",
+          name,
+          params
+        });
+      } catch {
+      }
+      return;
+    }
+    if (typeof window === "undefined") return;
+    ensureDemoGtag();
+    const payload = { ...params, source: params.source ?? "demo" };
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", name, payload);
+      } else {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(["event", name, payload]);
+      }
+    } catch {
+    }
+  }
 
   // src/demo/main.js
   var demoTabs = document.querySelectorAll(".demo-tab");
@@ -409,7 +541,10 @@
       historyListEl.appendChild(item);
     });
   };
-  clearHistoryEl.addEventListener("click", clearDemoHistory);
+  clearHistoryEl.addEventListener("click", () => {
+    clearDemoHistory();
+    trackEvent(EVENTS.HISTORY_CLEARED, { source: "demo" });
+  });
   var appendOutputRow = (target, label, value, copyValue, hrTop = false) => {
     if (hrTop) {
       const sep = document.createElement("div");
@@ -602,6 +737,10 @@
   presetChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       applyTimePreset(chip.dataset.preset);
+      trackEvent(EVENTS.DATE_PRESET_USED, {
+        preset: chip.dataset.preset,
+        source: "demo"
+      });
     });
   });
   timeFieldEls.forEach((input) => {
@@ -729,6 +868,7 @@
     }
     epochErrorEl.textContent = "";
     renderEpochOutput(epochMs);
+    trackEvent(EVENTS.EPOCH_TO_DATE, { source: "demo" });
     saveHistory({
       source: "epoch",
       input: epochInput.value.trim(),
@@ -767,6 +907,7 @@
         true
       );
       dateErrorEl.textContent = "";
+      trackEvent(EVENTS.UTC_TO_EPOCH, { source: "demo" });
       saveHistory({
         source: "iso",
         input: isoInputEl.value.trim(),
@@ -800,6 +941,7 @@
     const useUtc = dateTz.value === "utc";
     const epochMs = useUtc ? Date.UTC(year, month - 1, day, hour, minute, second, ms) : new Date(year, month - 1, day, hour, minute, second, ms).getTime();
     if (Number.isNaN(epochMs)) return;
+    trackEvent(EVENTS.DATE_TO_EPOCH, { source: "demo" });
     saveHistory({
       source: "date",
       input: `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(
@@ -820,6 +962,10 @@
     }
     const result = renderRelativeOutput();
     if (!result) return;
+    trackEvent(EVENTS.RELATIVE_CALCULATED, {
+      direction: relDir.value === "ago" ? "ago" : "from_now",
+      source: "demo"
+    });
     saveHistory({
       source: "relative",
       display: result.relativeLabel,
@@ -842,4 +988,21 @@
   renderRelativeOutput();
   [...dateFields, ...relFields].forEach(syncHasValue);
   renderHistory(loadHistory());
+  var analyticsToggleEl = document.getElementById("demo-analytics-toggle");
+  if (analyticsToggleEl) {
+    const optInLabel = analyticsToggleEl.dataset.optInLabel || "Disable analytics";
+    const optOutLabel = analyticsToggleEl.dataset.optOutLabel || "Enable analytics";
+    const syncLabel = async () => {
+      const optedOut = await getOptOut();
+      analyticsToggleEl.textContent = optedOut ? optOutLabel : optInLabel;
+    };
+    syncLabel();
+    analyticsToggleEl.addEventListener("click", async (ev) => {
+      ev.preventDefault();
+      const optedOut = await getOptOut();
+      await setOptOut(!optedOut);
+      window.location.reload();
+    });
+  }
+  trackEvent(EVENTS.DEMO_OPENED, { source: "demo" });
 })();

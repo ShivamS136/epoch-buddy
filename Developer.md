@@ -8,7 +8,10 @@
 
 ```bash
 npm install
+cp analytics.config.example.json analytics.config.json   # optional; leave placeholders to disable analytics in local builds
 ```
+
+`analytics.config.json` holds your real GA4 credentials and is gitignored. The build reads it and generates `src/shared/generated/analyticsConfig.js`. If the file is missing or the credentials are empty, the analytics module no-ops at runtime — local builds work fine without GA.
 
 ### Project layout
 
@@ -20,17 +23,25 @@ src/
     clipboard.js       #   Copy-to-clipboard with visual feedback
     theme.js           #   Dark/light/system theme management
     timezones.js       #   User-configurable timezone list (storage + sync)
+    analytics.js       #   GA4 event facade (extension -> SW, demo -> gtag)
+    feedbackFormUrl.js #   Google Form URL builder for low-star feedback
   popup/main.js        # Extension popup entry point
   content/main.js      # Content script entry point
+  background/main.js   # Extension background service worker (GA4 MP egress)
   demo/main.js         # Docs demo page entry point
 extension/             # Extension package (HTML, CSS, manifest + BUILT JS)
 docs/                  # GitHub Pages website (HTML, CSS + BUILT demo.js)
 scripts/build.mjs      # Build, watch, and packaging script
 feedback-form.config.json  # Google Form base URL + entry keys (1–3 star feedback); used by build
+analytics.config.json       # GA4 measurement IDs + API secrets (chrome/firefox/demo); gitignored
+analytics.config.example.json  # Committed template to copy from
 ```
 
 Source code lives in `src/`. The build step bundles each entry point into self-contained IIFE files that the extension and website reference directly.
-Before bundling, the build emits `src/shared/generated/feedbackFormConfig.js` from `feedback-form.config.json` (do not edit the generated file by hand).
+Before bundling, the build emits two generated modules (do not edit them by hand):
+
+- `src/shared/generated/feedbackFormConfig.js` from `feedback-form.config.json`
+- `src/shared/generated/analyticsConfig.js` from `analytics.config.json`
 
 ### Key shared modules
 
@@ -42,6 +53,7 @@ Before bundling, the build emits `src/shared/generated/feedbackFormConfig.js` fr
 | `shared/theme.js`           | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class                                                                                                                                                                         |
 | `shared/timezones.js`       | User-configurable timezone list: `DEFAULT_TIMEZONES`, `isValidTimezone`, `getAvailableTimezones`, `load/saveTimezonesToStorage`, `onTimezonesChanged` (storage sync across surfaces)                                                                                      |
 | `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels                                                                                                                             |
+| `shared/analytics.js`       | `trackEvent(name, params)`, `EVENTS` constants, `getOptOut` / `setOptOut`. Routes to background SW (extension context) or `gtag.js` (demo web context). Opt-out is keyed on `analyticsOptOut` (extension) / `epochBuddyAnalyticsOptOut` (demo); demo also honors `navigator.doNotTrack` |
 
 ### Build commands
 
@@ -61,8 +73,10 @@ Built files:
 
 - `extension/index.js` -- from `src/popup/main.js`
 - `extension/script.js` -- from `src/content/main.js`
+- `extension/background.js` -- from `src/background/main.js` (MV3 service worker that receives `ga:track` messages and POSTs to GA4 Measurement Protocol)
 - `docs/demo.js` -- from `src/demo/main.js`
 - `src/shared/generated/feedbackFormConfig.js` -- from `feedback-form.config.json` (popup 1–3 star feedback links)
+- `src/shared/generated/analyticsConfig.js` -- from `analytics.config.json` (GA4 credentials)
 
 ### Local development
 
@@ -92,8 +106,8 @@ Built files:
 
 There is a single `extension/manifest.json` that serves as the base (Chrome/Edge MV3). Firefox-specific settings (`browser_specific_settings.gecko`) are added or removed by the build script:
 
-- `--browser firefox` adds Firefox fields to the manifest
-- `--browser chrome` strips Firefox fields from the manifest
+- `--browser firefox` adds Firefox fields to the manifest, rewrites `background: { service_worker: ... }` to `background: { scripts: [...] }` (Firefox MV3 doesn't accept `service_worker`), and sets `data_collection_permissions.required: ["technicalAndInteraction"]` on the `gecko` settings
+- `--browser chrome` strips Firefox fields and resets `background` to the MV3 `service_worker` form
 - `--pack firefox` patches the manifest in a temporary directory (does not modify the source)
 
 When using `watch:firefox`, the manifest is patched at startup and restored to the Chrome base when you press Ctrl+C.

@@ -29,10 +29,7 @@ export function buildFeedbackFormUrl(stars, manifestVersion, isFirefox) {
   }
   const url = new URL(FEEDBACK_FORM_BASE_URL);
   url.searchParams.set("usp", "pp_url");
-  url.searchParams.set(
-    FEEDBACK_FORM_ENTRY_KEYS.rating,
-    String(stars),
-  );
+  url.searchParams.set(FEEDBACK_FORM_ENTRY_KEYS.rating, String(stars));
   url.searchParams.set(
     FEEDBACK_FORM_ENTRY_KEYS.version,
     String(manifestVersion ?? ""),

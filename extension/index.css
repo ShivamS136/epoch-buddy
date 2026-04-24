@@ -1093,7 +1093,7 @@ button:hover {
   flex-shrink: 0;
 }
 
-.settings-rate-text {
+.settings-section-text {
   margin: 0 0 8px;
   font-size: 12px;
   color: var(--text-muted);
@@ -1176,6 +1176,79 @@ button:hover {
 }
 .hint p {
   margin: 5px;
+}
+
+/* ── Analytics toggle + notice ────────────────────────────────── */
+
+.analytics-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.analytics-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--accent, #2563eb);
+  flex: 0;
+}
+
+.analytics-toggle-label {
+  line-height: 1.2;
+}
+
+.settings-inline-link {
+  color: var(--accent, #2563eb);
+  text-decoration: underline;
+}
+
+.analytics-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  margin: 8px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--result-bg);
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.analytics-notice[hidden] {
+  display: none;
+}
+
+.analytics-notice-text {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.analytics-notice-dismiss {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.analytics-notice-dismiss:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* ── Rating footer ───────────────────────────────────────────── */

@@ -255,12 +255,12 @@
     return () => mql.removeEventListener("change", handler);
   }
   function loadThemeFromStorage(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) {
       callback("system");
       return;
     }
-    browser.storage.local.get({ [THEME_KEY]: "system" }, (result) => {
+    browser2.storage.local.get({ [THEME_KEY]: "system" }, (result) => {
       callback(result[THEME_KEY] || "system");
     });
   }
@@ -275,32 +275,144 @@
     return cleaned.length > 0 ? cleaned : null;
   }
   function loadTimezonesFromStorage(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.local) {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.local) {
       callback(DEFAULT_TIMEZONES.slice());
       return;
     }
-    browser.storage.local.get({ [TIMEZONES_KEY]: null }, (result) => {
+    browser2.storage.local.get({ [TIMEZONES_KEY]: null }, (result) => {
       const cleaned = sanitize(result[TIMEZONES_KEY]);
       callback(cleaned || DEFAULT_TIMEZONES.slice());
     });
   }
   function onTimezonesChanged(callback) {
-    const browser = globalThis.browser || globalThis.chrome;
-    if (!browser?.storage?.onChanged) return () => {
+    const browser2 = globalThis.browser || globalThis.chrome;
+    if (!browser2?.storage?.onChanged) return () => {
     };
     const listener = (changes, area) => {
       if (area !== "local" || !changes[TIMEZONES_KEY]) return;
       const cleaned = sanitize(changes[TIMEZONES_KEY].newValue);
       callback(cleaned || DEFAULT_TIMEZONES.slice());
     };
-    browser.storage.onChanged.addListener(listener);
-    return () => browser.storage.onChanged.removeListener(listener);
+    browser2.storage.onChanged.addListener(listener);
+    return () => browser2.storage.onChanged.removeListener(listener);
+  }
+
+  // src/shared/generated/analyticsConfig.js
+  var ANALYTICS_CONFIG = {
+    chrome: {
+      measurement_id: "G-XXXXXXXXXX",
+      api_secret: "CHROME_STREAM_API_SECRET"
+    },
+    firefox: {
+      measurement_id: "G-YYYYYYYYYY",
+      api_secret: "FIREFOX_STREAM_API_SECRET"
+    },
+    demo: {
+      measurement_id: "G-CVXQHWB0WH",
+      tag_id: "G-CVXQHWB0WH"
+    }
+  };
+
+  // src/shared/analytics.js
+  var EVENTS = {
+    POPUP_OPENED: "popup_opened",
+    EPOCH_TO_DATE: "epoch_to_date",
+    DATE_TO_EPOCH: "date_to_epoch",
+    UTC_TO_EPOCH: "utc_to_epoch",
+    RELATIVE_CALCULATED: "relative_calculated",
+    HISTORY_CLEARED: "history_cleared",
+    DATE_PRESET_USED: "date_preset_used",
+    THEME_CHANGED: "theme_changed",
+    SETTINGS_OPENED: "settings_opened",
+    TIMEZONE_MODIFIED: "timezone_modified",
+    EXTERNAL_LINK_CLICKED: "external_link_clicked",
+    RATING_CLICKED: "rating_clicked",
+    RATING_FOOTER_ACTION: "rating_footer_action",
+    FLOATING_POPUP_SHOWN: "floating_popup_shown",
+    FLOATING_COPY_CLICKED: "floating_copy_clicked",
+    DEMO_OPENED: "demo_opened"
+  };
+  var OPT_OUT_STORAGE_KEY = "analyticsOptOut";
+  var DEMO_OPT_OUT_STORAGE_KEY = "epochBuddyAnalyticsOptOut";
+  var browser = typeof globalThis !== "undefined" && (globalThis.browser || globalThis.chrome) || null;
+  var isExtensionRuntime = Boolean(
+    browser && browser.runtime && browser.runtime.id && typeof browser.runtime.sendMessage === "function"
+  );
+  async function getOptOut() {
+    if (isExtensionRuntime && browser.storage?.local) {
+      return new Promise((resolve) => {
+        try {
+          browser.storage.local.get({ [OPT_OUT_STORAGE_KEY]: false }, (res) => {
+            resolve(Boolean(res[OPT_OUT_STORAGE_KEY]));
+          });
+        } catch {
+          resolve(false);
+        }
+      });
+    }
+    if (typeof window !== "undefined") {
+      if (window.navigator?.doNotTrack === "1") return true;
+      try {
+        return window.localStorage.getItem(DEMO_OPT_OUT_STORAGE_KEY) === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+  var demoGtagReady = false;
+  var demoGtagLoading = false;
+  function ensureDemoGtag() {
+    if (demoGtagReady || demoGtagLoading) return;
+    const tagId = ANALYTICS_CONFIG.demo?.tag_id;
+    if (!tagId || !tagId.startsWith("G-")) return;
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    demoGtagLoading = true;
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(tagId)}`;
+    script.addEventListener("load", () => {
+      demoGtagReady = true;
+    });
+    document.head.appendChild(script);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag("js", /* @__PURE__ */ new Date());
+    window.gtag("config", tagId, { anonymize_ip: true, send_page_view: false });
+  }
+  async function trackEvent(name, params = {}) {
+    if (await getOptOut()) return;
+    if (isExtensionRuntime) {
+      try {
+        browser.runtime.sendMessage({
+          type: "ga:track",
+          name,
+          params
+        });
+      } catch {
+      }
+      return;
+    }
+    if (typeof window === "undefined") return;
+    ensureDemoGtag();
+    const payload = { ...params, source: params.source ?? "demo" };
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", name, payload);
+      } else {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(["event", name, payload]);
+      }
+    } catch {
+    }
   }
 
   // src/content/main.js
   (() => {
-    const browser = globalThis.browser || globalThis.chrome;
+    const browser2 = globalThis.browser || globalThis.chrome;
     const POPUP_ID = "epoch-buddy-popup";
     let popupEl = null;
     let lastSelectionText = "";
@@ -335,17 +447,21 @@
           {
             label: "Epoch (s)",
             value: conversion.epochS,
-            copyValue: conversion.epochS
+            copyValue: conversion.epochS,
+            row: "epoch_s"
           },
           {
             label: "Epoch (ms)",
             value: lastSelection.epochMs,
-            copyValue: lastSelection.epochMs
+            copyValue: lastSelection.epochMs,
+            row: "epoch_ms"
           },
           ...buildZoneRows(lastSelection.epochMs, currentZones).map((row) => ({
             label: row.label,
             value: row.displayValue,
-            copyValue: row.copyValue
+            copyValue: row.copyValue,
+            row: "zone",
+            zone: row.zone
           })),
           {
             label: "Relative",
@@ -357,8 +473,8 @@
         renderPopup(lastSelection.rect, formatted);
       }
     });
-    if (browser?.storage?.onChanged) {
-      browser.storage.onChanged.addListener((changes, area) => {
+    if (browser2?.storage?.onChanged) {
+      browser2.storage.onChanged.addListener((changes, area) => {
         if (area === "local" && changes.theme) {
           themePref = changes.theme.newValue || "system";
           applyPopupTheme();
@@ -380,6 +496,19 @@
       el.id = POPUP_ID;
       el.setAttribute("role", "dialog");
       el.setAttribute("aria-live", "polite");
+      el.addEventListener(
+        "click",
+        (ev) => {
+          const btn = ev.target.closest?.(".epoch-buddy-copy");
+          if (!btn) return;
+          const row = btn.dataset.row;
+          if (!row) return;
+          const params = { row };
+          if (btn.dataset.zone) params.zone = btn.dataset.zone;
+          trackEvent(EVENTS.FLOATING_COPY_CLICKED, params);
+        },
+        true
+      );
       document.body.appendChild(el);
       popupEl = el;
       applyPopupTheme();
@@ -416,13 +545,13 @@
       };
     };
     const saveHistory = (entry) => {
-      if (!browser?.storage?.local) {
+      if (!browser2?.storage?.local) {
         return;
       }
-      browser.storage.local.get({ history: [] }, (result) => {
+      browser2.storage.local.get({ history: [] }, (result) => {
         const history = Array.isArray(result.history) ? result.history : [];
         const next = [entry, ...history].slice(0, 10);
-        browser.storage.local.set({ history: next });
+        browser2.storage.local.set({ history: next });
       });
     };
     const renderPopup = (rect, formatted) => {
@@ -447,12 +576,13 @@
         value.textContent = `${line.value}`;
         el.appendChild(value);
         if (!line.noCopy) {
-          el.appendChild(
-            createCopyButton(
-              typeof line.copyValue === "string" ? line.copyValue : line.value,
-              copyBtnOpts
-            )
+          const copyBtn = createCopyButton(
+            typeof line.copyValue === "string" ? line.copyValue : line.value,
+            copyBtnOpts
           );
+          if (line.row) copyBtn.dataset.row = line.row;
+          if (line.zone) copyBtn.dataset.zone = line.zone;
+          el.appendChild(copyBtn);
         } else {
           el.appendChild(document.createElement("span"));
         }
@@ -534,17 +664,21 @@
         {
           label: "Epoch (s)",
           value: conversion.epochS,
-          copyValue: conversion.epochS
+          copyValue: conversion.epochS,
+          row: "epoch_s"
         },
         {
           label: "Epoch (ms)",
           value: epochMs,
-          copyValue: epochMs
+          copyValue: epochMs,
+          row: "epoch_ms"
         },
         ...buildZoneRows(epochMs, currentZones).map((row) => ({
           label: row.label,
           value: row.displayValue,
-          copyValue: row.copyValue
+          copyValue: row.copyValue,
+          row: "zone",
+          zone: row.zone
         })),
         {
           label: "Relative",
@@ -555,6 +689,7 @@
       ];
       lastSelection = { rect, epochMs };
       renderPopup(rect, formatted);
+      trackEvent(EVENTS.FLOATING_POPUP_SHOWN);
       saveHistory({
         source: "epoch",
         input: selectedText.trim(),

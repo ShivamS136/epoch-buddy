@@ -1,7 +1,8 @@
 Stop copying epoch timestamps to random websites. Epoch Buddy converts Unix
 timestamps to human-readable dates instantly — right on any webpage or from the
-popup. Seconds, milliseconds, dates, relative time — all covered. Fast, private,
-and works completely offline.
+popup. Seconds, milliseconds, dates, relative time — all covered. Fast and
+private: all conversions happen locally; your inputs and results never leave
+your browser.
 
 
 WHY DEVELOPERS LOVE EPOCH BUDDY
@@ -9,8 +10,8 @@ WHY DEVELOPERS LOVE EPOCH BUDDY
 Epoch timestamps are everywhere: server logs, monitoring dashboards, API
 responses, database records, incident timelines, support tickets, and more.
 Every time you see a 10-digit or 13-digit number and wonder "what time was
-that?", Epoch Buddy gives you the answer in seconds — without leaving your tab,
-without any external site, and without ever sending your data anywhere.
+that?", Epoch Buddy gives you the answer in seconds — without leaving your tab
+and without any external site.
 
 
 FEATURES
@@ -86,10 +87,13 @@ instantly.
 
 PRIVACY & PERFORMANCE
 
-- Zero external network requests — works 100% offline
+- All conversions run locally — no conversion inputs or results are sent anywhere
+- Works fully offline: the converter itself never needs the network
 - No accounts, no sign-ups, no logins
-- No analytics, no trackers, no telemetry
-- No data leaves your browser — ever
+- Anonymous usage analytics (event counts only — no page content, no personal
+  data, no conversion values) help us understand which features are used. You
+  can disable analytics any time from the Settings screen. Details in the
+  privacy policy.
 - Lightweight and blazing fast
 - Open source: https://github.com/ShivamS136/epoch-buddy
 

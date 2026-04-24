@@ -3,3 +3,6 @@
 .trackify.jsonl
 node_modules/
 dist/
+
+# GA Config
+analytics.config.json

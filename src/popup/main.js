@@ -42,6 +42,12 @@ import {
   getAvailableTimezones,
 } from "../shared/timezones.js";
 import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
+import {
+  EVENTS,
+  trackEvent,
+  getOptOut,
+  setOptOut,
+} from "../shared/analytics.js";
 
 (() => {
   const browser = globalThis.browser || globalThis.chrome;
@@ -120,6 +126,10 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       const option = e.target.closest("[data-theme-option]");
       if (!option) return;
       setTheme(option.dataset.themeOption);
+      trackEvent(EVENTS.THEME_CHANGED, {
+        theme: option.dataset.themeOption,
+        source: "settings",
+      });
     });
   }
 
@@ -133,6 +143,10 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     if (!option) return;
     setTheme(option.dataset.themeOption);
     themeMenu.hidden = true;
+    trackEvent(EVENTS.THEME_CHANGED, {
+      theme: option.dataset.themeOption,
+      source: "toolbar",
+    });
   });
 
   document.addEventListener("click", (e) => {
@@ -208,6 +222,14 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
   const settingsStarBtns = settingsStarsRow
     ? settingsStarsRow.querySelectorAll(".rating-star-btn")
     : [];
+  const analyticsOptInEl = document.getElementById("analytics-opt-in");
+  const analyticsNoticeEl = document.getElementById("analytics-notice");
+  const analyticsNoticeDismissBtn = document.getElementById(
+    "analytics-notice-dismiss",
+  );
+  const settingsLinks = document.querySelectorAll(
+    "#settings-view .settings-link",
+  );
 
   let currentZones = DEFAULT_TIMEZONES.slice();
 
@@ -555,6 +577,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
   clearHistoryEl.addEventListener("click", () => {
     clearHistory();
+    trackEvent(EVENTS.HISTORY_CLEARED);
   });
 
   // ── Auto-refresh epoch input ──────────────────────────────────────
@@ -664,6 +687,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
   presetChips.forEach((chip) => {
     chip.addEventListener("click", () => {
       applyTimePreset(chip.dataset.preset);
+      trackEvent(EVENTS.DATE_PRESET_USED, { preset: chip.dataset.preset });
     });
   });
 
@@ -758,6 +782,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
     const conversion = buildConversionData(epochMs);
     renderEpochToDateResult(epochMs, conversion);
+    trackEvent(EVENTS.EPOCH_TO_DATE);
     saveHistory({
       source: "epoch",
       input: inputValue,
@@ -783,6 +808,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       const epochMs = result.value;
       const conversion = buildConversionData(epochMs);
       renderDateToEpochResult(epochMs, conversion);
+      trackEvent(EVENTS.UTC_TO_EPOCH);
       saveHistory({
         source: "iso",
         input: isoInputEl.value.trim(),
@@ -909,6 +935,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
 
     const conversion = buildConversionData(epochMs);
     renderDateToEpochResult(epochMs, conversion);
+    trackEvent(EVENTS.DATE_TO_EPOCH);
 
     const dateLabel = `${dateParts.year}-${pad2(dateParts.month)}-${pad2(
       dateParts.day,
@@ -986,6 +1013,9 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       isAgo ? "ago" : "from now",
     );
     renderRelativeResult(epochMs, conversion, relativeLabel);
+    trackEvent(EVENTS.RELATIVE_CALCULATED, {
+      direction: isAgo ? "ago" : "from_now",
+    });
     saveHistory({
       source: "relative",
       display: relativeLabel,
@@ -1092,6 +1122,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       btn.addEventListener("click", () => {
         const n = Number(btn.dataset.stars);
         if (!n) return;
+        trackEvent(EVENTS.RATING_CLICKED, { rating: n, source: "main" });
         browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
           lastRatingValue = n;
           if (n <= 3) {
@@ -1105,6 +1136,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     });
 
     ratingHideFooterBtn.addEventListener("click", () => {
+      trackEvent(EVENTS.RATING_FOOTER_ACTION, { action: "dismissed" });
       browser.storage.local.set(
         { [STORAGE_RATING_FOOTER_HIDDEN]: true },
         () => {
@@ -1114,6 +1146,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     });
 
     ratingAgainBtn.addEventListener("click", () => {
+      trackEvent(EVENTS.RATING_FOOTER_ACTION, { action: "rate_again" });
       showRatingPrompt();
       browser.storage.local.remove(STORAGE_RATING_STARS);
     });
@@ -1287,9 +1320,13 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       } else {
         removeBtn.addEventListener("click", () => {
           const next = currentZones.slice();
-          next.splice(idx, 1);
+          const [removed] = next.splice(idx, 1);
           if (next.length === 0) return;
           saveTimezonesToStorage(next);
+          trackEvent(EVENTS.TIMEZONE_MODIFIED, {
+            action: "remove",
+            zone: removed,
+          });
         });
       }
       li.appendChild(removeBtn);
@@ -1331,6 +1368,10 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
         const [moved] = next.splice(fromIdx, 1);
         next.splice(toIdx, 0, moved);
         saveTimezonesToStorage(next);
+        trackEvent(EVENTS.TIMEZONE_MODIFIED, {
+          action: "reorder",
+          zone: moved,
+        });
       });
 
       tzListEl.appendChild(li);
@@ -1397,12 +1438,14 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
       const zone = tzAddSelectEl.value;
       if (!zone || currentZones.includes(zone)) return;
       saveTimezonesToStorage([...currentZones, zone]);
+      trackEvent(EVENTS.TIMEZONE_MODIFIED, { action: "add", zone });
     });
   }
 
   if (settingsBtn) {
     settingsBtn.addEventListener("click", () => {
       showSettingsView();
+      trackEvent(EVENTS.SETTINGS_OPENED);
     });
   }
   if (settingsBackBtn) {
@@ -1415,6 +1458,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     btn.addEventListener("click", () => {
       const n = Number(btn.dataset.stars);
       if (!n) return;
+      trackEvent(EVENTS.RATING_CLICKED, { rating: n, source: "settings" });
       if (browser?.storage?.local) {
         browser.storage.local.set({ [STORAGE_RATING_STARS]: n }, () => {
           lastRatingValue = n;
@@ -1448,6 +1492,77 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     });
   }
 
+  // ── Analytics opt-out + first-run notice ─────────────────────────
+
+  const STORAGE_ANALYTICS_NOTICE_SEEN = "analyticsNoticeSeen";
+  const STORAGE_ANALYTICS_OPT_OUT = "analyticsOptOut";
+
+  const syncAnalyticsToggle = async () => {
+    if (!analyticsOptInEl) return;
+    const optedOut = await getOptOut();
+    analyticsOptInEl.checked = !optedOut;
+  };
+
+  if (analyticsOptInEl) {
+    analyticsOptInEl.addEventListener("change", () => {
+      setOptOut(!analyticsOptInEl.checked);
+    });
+    syncAnalyticsToggle();
+  }
+
+  if (browser?.storage?.onChanged) {
+    browser.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes[STORAGE_ANALYTICS_OPT_OUT]) {
+        syncAnalyticsToggle();
+      }
+    });
+  }
+
+  const maybeShowAnalyticsNotice = () => {
+    if (!analyticsNoticeEl || !browser?.storage?.local) return;
+    browser.storage.local.get(
+      {
+        [STORAGE_ANALYTICS_NOTICE_SEEN]: false,
+        [STORAGE_ANALYTICS_OPT_OUT]: null,
+        history: [],
+      },
+      (res) => {
+        const seen = Boolean(res[STORAGE_ANALYTICS_NOTICE_SEEN]);
+        if (seen) return;
+        const hasHistory = Array.isArray(res.history) && res.history.length > 0;
+        const explicitOptOut = res[STORAGE_ANALYTICS_OPT_OUT] === true;
+        if (!hasHistory || explicitOptOut) {
+          browser.storage.local.set({ [STORAGE_ANALYTICS_NOTICE_SEEN]: true });
+          return;
+        }
+        analyticsNoticeEl.hidden = false;
+      },
+    );
+  };
+
+  if (analyticsNoticeDismissBtn && analyticsNoticeEl) {
+    analyticsNoticeDismissBtn.addEventListener("click", () => {
+      analyticsNoticeEl.hidden = true;
+      if (browser?.storage?.local) {
+        browser.storage.local.set({ [STORAGE_ANALYTICS_NOTICE_SEEN]: true });
+      }
+    });
+  }
+
+  maybeShowAnalyticsNotice();
+
+  // ── External link tracking (GitHub / Chai4me) ────────────────────
+
+  settingsLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      const href = link.getAttribute("href") || "";
+      let target = null;
+      if (href.includes("github.com")) target = "github";
+      else if (href.includes("chai4.me")) target = "chai4me";
+      if (target) trackEvent(EVENTS.EXTERNAL_LINK_CLICKED, { target });
+    });
+  });
+
   // ── Init ──────────────────────────────────────────────────────────
 
   loadTimezonesFromStorage((zones) => {
@@ -1457,6 +1572,7 @@ import { buildFeedbackFormUrl } from "../shared/feedbackFormUrl.js";
     populateRelativeDefaults();
     renderSettingsView();
     loadHistory();
+    trackEvent(EVENTS.POPUP_OPENED);
   });
 
   onTimezonesChanged((zones) => {

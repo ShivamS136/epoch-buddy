@@ -1,0 +1,14 @@
+{
+  "chrome": {
+    "measurement_id": "G-XXXXXXXXXX",
+    "api_secret": "CHROME_STREAM_API_SECRET"
+  },
+  "firefox": {
+    "measurement_id": "G-YYYYYYYYYY",
+    "api_secret": "FIREFOX_STREAM_API_SECRET"
+  },
+  "demo": {
+    "measurement_id": "G-ZZZZZZZZZZ",
+    "tag_id": "G-ZZZZZZZZZZ"
+  }
+}
