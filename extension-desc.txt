@@ -117,6 +117,16 @@ PERFECT FOR
 - Anyone tired of Googling "epoch to date converter"
 
 
+WHAT'S NEW IN v1.7.0
+
+- New Settings → Analytics toggle: opt out of anonymous usage counts at
+  any time. Only event names (like "epoch_to_date", "settings_opened")
+  and a random install ID are ever sent — never your conversion values,
+  the text you selected on a page, or any page content. See the privacy
+  policy for the full list.
+- First-time notice for existing users explains the anonymous analytics
+  and how to disable it in one click.
+
 WHAT'S NEW IN v1.6.0
 
 - Settings page accessible from the header gear icon

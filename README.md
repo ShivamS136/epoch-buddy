@@ -28,6 +28,7 @@ A browser extension that converts epoch timestamps into human-readable dates (an
   <img src="docs/assets/screenshots/ext-menu-relative-to-epoch.png" alt="relative to epoch" height="400">
 
 - **Timezone settings (v1.6+)**: Open the gear icon in the header to add any IANA timezone, remove ones you do not need, and drag-and-drop to reorder. The configured list drives the on-page popup, all three converter tabs, history entries, and the ISO fallback-timezone picker.
+- **Analytics opt-out (v1.7+)**: Settings includes an Analytics toggle. Only anonymous event names and a random install ID are ever sent — never your conversion values, selected text, or page content. See the [privacy policy](https://shivams136.github.io/epoch-buddy/privacy.html) for the full list.
 - **Smart validation**: All numeric fields enforce min/max ranges, show per-field error highlighting, and default to zero on blur for time fields (date fields require a value).
 - **History**: Last 10 conversions with quick copy buttons and a clear button. Each entry expands to show per-timezone rows.
 - **Dark Mode**: Supports dark mode in both the extension menu and the popup. A polished segmented theme picker appears in both the header and the Settings page.
@@ -88,9 +89,10 @@ Pack commands always produce a clean zip for each browser regardless of the curr
 
 ```bash
 src/
-  shared/            # Shared utilities (formatting, parsing, clipboard)
+  shared/            # Shared utilities (formatting, parsing, clipboard, theme, timezones, analytics)
   popup/main.js      # Extension popup entry point
   content/main.js    # Content script entry point
+  background/main.js # Extension background service worker (analytics egress)
   demo/main.js       # GitHub Pages demo entry point
 extension/           # Extension package (HTML, CSS, manifest + built JS)
 docs/                # GitHub Pages website (HTML, CSS + built demo.js)
