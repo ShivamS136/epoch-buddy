@@ -132,12 +132,32 @@ npm run pack           # both
 
 Pack commands always produce a clean zip for the target browser, regardless of the current state of `extension/manifest.json`.
 
-Pack also runs verification on the bundled output and fails if:
+#### Pack-time analytics-config swap
+
+Pack always ships the **production** GA4 chrome/firefox MP credentials (the zips need them to write events from the store-installed extension). To keep those credentials out of the committed working tree, pack juggles three files around `analytics.config.json`:
+
+| File                            | Tracked?   | Role                                                                                                                                                                       |
+| ------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `analytics.config.values.json`  | gitignored | Holds the real chrome/firefox/demo credentials. **Pack reads it; nothing else may touch it.**                                                                              |
+| `analytics.config.base.json`    | gitignored | Dev-safe baseline (placeholder chrome+firefox, real demo). Pack restores `analytics.config.json` from it after zipping. Seed it once from `analytics.config.example.json`. |
+| `analytics.config.json`         | gitignored | Transient. The build always reads this. Pack overwrites it during the swap and restores it after.                                                                          |
+| `analytics.config.example.json` | committed  | Public template. Used as the seed for `analytics.config.base.json` on a fresh clone.                                                                                       |
+
+Flow on `npm run pack[:chrome|:firefox]`:
+
+1. Verify both `analytics.config.values.json` and `analytics.config.base.json` exist (fail early with a hint pointing at the example file if base is missing).
+2. Snapshot the `base.json` contents in memory.
+3. Overwrite `analytics.config.json` with `values.json`.
+4. Build, zip, run pack checks (see below).
+5. In `finally`: restore `analytics.config.json` from the snapshot and rebuild — so the on-disk artifacts return to the dev-safe baseline and never carry prod credentials into a subsequent commit. Restoration runs even if the build or zip step throws.
+
+Pack runs the following checks and fails the build if any trip:
 
 - any bundled JS uses a banned DOM-write pattern (currently `.innerHTML =` assignment — use `textContent` / `createElement` / `replaceChildren` instead)
 - any dotfile made it into the zip
+- any bundled JS in the zip is **missing** an expected credential prefix from `scripts/forbidden-secrets.mjs` — guards against shipping a zip that silently lost the credentials (e.g. if the swap was skipped or `values.json` was empty)
 
-Pack does **not** run the analytics-secret scan — that lives in `npm run check:secrets` and the pre-commit hook (see _Secret hygiene_ below). Pack assumes its inputs are already clean.
+Pack does **not** run the post-build "did this leak into committed artifacts?" scan — that's `npm run check:secrets` (and the pre-commit hook). The pack restore step makes that scan unnecessary in the normal pack path.
 
 ### Secret hygiene
 

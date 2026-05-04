@@ -6,3 +6,5 @@ dist/
 
 # GA Config
 analytics.config.json
+analytics.config.values.json
+analytics.config.base.json

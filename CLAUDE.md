@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **NEVER read `analytics.config.values.json`.** It contains the production GA4 chrome/firefox API secrets in cleartext and is consumed only by the pack script (which copies it into `analytics.config.json`, builds, zips, then restores from `analytics.config.base.json`). Do not open it with Read, do not `cat` it via Bash, do not include it in greps that print content. Treat its contents as out-of-scope. If you need to know what shape it has, refer to `analytics.config.example.json` or `analytics.config.base.json` — same schema.
+
 ## Product surfaces
 
 Epoch Buddy ships four user-facing surfaces from one codebase. Before editing, decide which surface the change belongs to:
@@ -44,7 +46,7 @@ git add <regenerated artifacts>
 git commit ...
 ```
 
-`npm run pack` does **not** run the secret scan — it only enforces the DOM-write and dotfile checks. Run `npm run check:secrets` (or rely on the pre-commit hook) before staging artifacts; pack assumes clean inputs.
+`npm run pack` does **not** run the post-build "leaked into committed artifacts?" scan, but it does its own secret juggling: before building it copies `analytics.config.values.json` (gitignored, prod credentials, never read by anything else) into `analytics.config.json`; after zipping (in `finally`) it restores `analytics.config.json` from `analytics.config.base.json` (gitignored, dev-safe baseline) and rebuilds, so the working tree returns to the safe state. Pack also fails if a bundled JS in the zip is _missing_ an expected credential prefix — that guards against shipping a zip without credentials. Outside the pack flow, run `npm run check:secrets` (or rely on the pre-commit hook) before staging artifacts.
 
 **Pre-commit hook**: `.githooks/pre-commit` reads the _staged_ version of each artifact and aborts if any forbidden prefix is present. It catches even the case where the working tree was sanitized but the index still has a stale leaky artifact. Wired automatically by `scripts/install-hooks.mjs` via npm's `prepare` lifecycle, so `npm install` after a fresh clone sets `core.hooksPath` to `.githooks` for you. The installer skips silently in non-git checkouts and refuses to overwrite a custom `core.hooksPath` you already set.
 

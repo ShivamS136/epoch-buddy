@@ -13,10 +13,12 @@
  */
 
 import * as esbuild from "esbuild";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { FORBIDDEN_SECRET_PREFIXES } from "./forbidden-secrets.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -378,6 +380,96 @@ function verifyPack(zipPath) {
   return errors;
 }
 
+// ── Pack-time analytics-config swap ─────────────────────────────
+//
+// Pack always ships the production GA4 chrome/firefox MP credentials,
+// otherwise the zips uploaded to the stores can't write events. The dev
+// config is `analytics.config.base.json` (committed; placeholder
+// chrome/firefox values + the public demo gtag id), and the live prod
+// values live in `analytics.config.values.json` (gitignored, NEVER read
+// by anything other than the swap below — see CLAUDE.md).
+//
+// Flow on `--pack`:
+//   1. Snapshot a copy of analytics.config.base.json contents.
+//   2. Overwrite analytics.config.json with analytics.config.values.json.
+//   3. Run the normal build + zip + verify.
+//   4. In `finally`, restore analytics.config.json from the snapshot and
+//      rebuild so the on-disk artifacts match the dev-safe baseline (no
+//      lingering prod credentials in the working tree).
+
+const ANALYTICS_VALUES_PATH = path.join(ROOT, "analytics.config.values.json");
+const ANALYTICS_BASE_PATH = path.join(ROOT, "analytics.config.base.json");
+
+function readPackConfigFiles() {
+  if (!fs.existsSync(ANALYTICS_VALUES_PATH)) {
+    console.error(
+      "Pack aborted: analytics.config.values.json is missing. It must hold the production GA4 chrome/firefox/demo credentials and is gitignored. Pack copies it into analytics.config.json before zipping.",
+    );
+    process.exit(1);
+  }
+  if (!fs.existsSync(ANALYTICS_BASE_PATH)) {
+    console.error(
+      "Pack aborted: analytics.config.base.json is missing. It is the dev-safe baseline that pack restores into analytics.config.json after zipping. Create it by copying analytics.config.example.json (and editing the demo block if you want your own dev demo key).",
+    );
+    process.exit(1);
+  }
+  return {
+    valuesContent: fs.readFileSync(ANALYTICS_VALUES_PATH),
+    baseContent: fs.readFileSync(ANALYTICS_BASE_PATH),
+  };
+}
+
+function applyPackValues(valuesContent) {
+  fs.writeFileSync(ANALYTICS_CONFIG_PATH, valuesContent);
+}
+
+function restorePackBase(baseContent) {
+  try {
+    fs.writeFileSync(ANALYTICS_CONFIG_PATH, baseContent);
+  } catch (err) {
+    console.error(
+      `WARNING: failed to restore analytics.config.json from base (${err?.message || err}). Restore it manually before committing.`,
+    );
+  }
+}
+
+/**
+ * After zipping, confirm each zip actually shipped the production
+ * credentials. If we ever skipped the swap, or the build dropped the
+ * config, the zip would still pass the dotfile/.innerHTML checks while
+ * silently shipping placeholder credentials and breaking analytics.
+ *
+ * Each bundled JS in the zip must contain every prefix in
+ * FORBIDDEN_SECRET_PREFIXES (semantically: "every credential prefix").
+ */
+function verifyZipHasExpectedSecrets(zipPath) {
+  const errors = [];
+  const filesToCheck = ["index.js", "script.js", "background.js", "welcome.js"];
+  const zipName = path.basename(zipPath);
+
+  for (const name of filesToCheck) {
+    let content;
+    try {
+      content = execFileSync("unzip", ["-p", zipPath, name], {
+        encoding: "utf-8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+    } catch {
+      errors.push(`${zipName}: cannot extract ${name} for credential check`);
+      continue;
+    }
+    for (const prefix of FORBIDDEN_SECRET_PREFIXES) {
+      if (!content.includes(prefix)) {
+        errors.push(
+          `${zipName}/${name}: missing expected credential prefix "${prefix}" — pack did not embed prod credentials`,
+        );
+      }
+    }
+  }
+
+  return errors;
+}
+
 function verifyBuildArtifacts() {
   const BANNED_PATTERNS = [
     { pattern: /\.innerHTML\s*=/, label: ".innerHTML assignment" },
@@ -414,9 +506,9 @@ function formatBytes(bytes) {
 
 // ── Main ────────────────────────────────────────────────────────
 
-await build();
-
-if (packMode) {
+if (!packMode) {
+  await build();
+} else {
   const targets = [];
   if (packTarget === null) {
     targets.push("chrome", "firefox");
@@ -430,19 +522,48 @@ if (packMode) {
     targets.push(packTarget);
   }
 
-  for (const t of targets) pack(t);
+  // Snapshot the base config (read up-front so a corrupt swap can't
+  // leave the working tree in a half-restored state) and copy the
+  // production values into analytics.config.json before building.
+  const { valuesContent, baseContent } = readPackConfigFiles();
+  applyPackValues(valuesContent);
 
-  // Run verification
-  console.log("\nRunning pack checks...");
   const allErrors = [];
+  let packFailed = false;
+  try {
+    await build();
+    for (const t of targets) pack(t);
 
-  allErrors.push(...verifyBuildArtifacts());
+    console.log("\nRunning pack checks...");
 
-  for (const t of targets) {
-    const zipPath = path.join(ROOT, `dist/${t}.zip`);
-    if (fs.existsSync(zipPath)) {
-      allErrors.push(...verifyPack(zipPath));
+    allErrors.push(...verifyBuildArtifacts());
+
+    for (const t of targets) {
+      const zipPath = path.join(ROOT, `dist/${t}.zip`);
+      if (fs.existsSync(zipPath)) {
+        allErrors.push(...verifyPack(zipPath));
+        allErrors.push(...verifyZipHasExpectedSecrets(zipPath));
+      }
     }
+  } catch (err) {
+    packFailed = true;
+    console.error(`\nPack failed: ${err?.message || err}`);
+  } finally {
+    restorePackBase(baseContent);
+    console.log(
+      "\nRestored analytics.config.json from analytics.config.base.json. Rebuilding to clean working-tree artifacts...",
+    );
+    try {
+      await build();
+    } catch (err) {
+      console.error(
+        `WARNING: post-pack rebuild failed (${err?.message || err}). Run \`npm run build\` manually before committing.`,
+      );
+    }
+  }
+
+  if (packFailed) {
+    process.exit(1);
   }
 
   if (allErrors.length > 0) {
