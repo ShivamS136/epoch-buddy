@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# Block commits that would land chrome/firefox GA4 Measurement Protocol
+# secrets into the repo. Reads the *staged* version of each tracked
+# artifact (i.e. what `git commit` would actually record) so it catches
+# both fresh stages and a "still dirty from a previous commit" state.
+#
+# Enable once per clone:
+#
+#   git config core.hooksPath .githooks
+#
+# To bypass for a one-off (e.g. you genuinely added a new placeholder
+# that happens to start with a forbidden prefix), edit
+# scripts/forbidden-secrets.mjs to update the list.
+
+set -e
+
+PREFIXES='G-PM7|ernO|G-FC7|mGP2'
+
+FILES=(
+  "src/shared/generated/analyticsConfig.js"
+  "extension/index.js"
+  "extension/script.js"
+  "extension/background.js"
+  "extension/welcome.js"
+  "docs/demo.js"
+)
+
+errors=0
+for f in "${FILES[@]}"; do
+  # Only check files that actually exist in the index (committed or staged).
+  if git cat-file -e ":$f" 2>/dev/null; then
+    if git show ":$f" | grep -E "$PREFIXES" -q; then
+      echo "blocked: $f contains a forbidden analytics secret prefix" >&2
+      errors=$((errors + 1))
+    fi
+  fi
+done
+
+if [ "$errors" -ne 0 ]; then
+  echo "" >&2
+  echo "Resolution:" >&2
+  echo "  npm run sanitize:analytics-config" >&2
+  echo "  npm run build" >&2
+  echo "  git add ${FILES[*]}" >&2
+  echo "  git commit ..." >&2
+  exit 1
+fi
