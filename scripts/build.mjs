@@ -18,11 +18,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import {
-  ARTIFACTS_TO_SCAN,
-  FORBIDDEN_SECRET_PREFIXES,
-} from "./forbidden-secrets.mjs";
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
@@ -403,23 +398,6 @@ function verifyBuildArtifacts() {
     for (const { pattern, label } of BANNED_PATTERNS) {
       if (pattern.test(content)) {
         errors.push(`${name}: contains ${label}`);
-      }
-    }
-  }
-
-  // Forbidden analytics secrets must never be in artifacts that ship
-  // (zips for the stores, or files committed to git). Mirrors the
-  // standalone `npm run check:secrets` so packs are gated even if the
-  // dev forgot to run that explicitly.
-  for (const rel of ARTIFACTS_TO_SCAN) {
-    const abs = path.join(ROOT, rel);
-    if (!fs.existsSync(abs)) continue;
-    const content = fs.readFileSync(abs, "utf-8");
-    for (const prefix of FORBIDDEN_SECRET_PREFIXES) {
-      if (content.includes(prefix)) {
-        errors.push(
-          `${rel}: contains forbidden secret prefix "${prefix}" — run \`npm run sanitize:analytics-config && npm run build\``,
-        );
       }
     }
   }

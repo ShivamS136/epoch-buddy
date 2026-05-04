@@ -135,8 +135,9 @@ Pack commands always produce a clean zip for the target browser, regardless of t
 Pack also runs verification on the bundled output and fails if:
 
 - any bundled JS uses a banned DOM-write pattern (currently `.innerHTML =` assignment — use `textContent` / `createElement` / `replaceChildren` instead)
-- any committed/built artifact contains a forbidden analytics-secret prefix (see _Secret hygiene_ below)
 - any dotfile made it into the zip
+
+Pack does **not** run the analytics-secret scan — that lives in `npm run check:secrets` and the pre-commit hook (see _Secret hygiene_ below). Pack assumes its inputs are already clean.
 
 ### Secret hygiene
 

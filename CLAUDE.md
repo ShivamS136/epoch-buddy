@@ -44,7 +44,7 @@ git add <regenerated artifacts>
 git commit ...
 ```
 
-`npm run pack` already invokes the same scan as part of `verifyBuildArtifacts` and will fail rather than zip a leaky build.
+`npm run pack` does **not** run the secret scan — it only enforces the DOM-write and dotfile checks. Run `npm run check:secrets` (or rely on the pre-commit hook) before staging artifacts; pack assumes clean inputs.
 
 **Pre-commit hook**: `.githooks/pre-commit` reads the _staged_ version of each artifact and aborts if any forbidden prefix is present. It catches even the case where the working tree was sanitized but the index still has a stale leaky artifact. Wired automatically by `scripts/install-hooks.mjs` via npm's `prepare` lifecycle, so `npm install` after a fresh clone sets `core.hooksPath` to `.githooks` for you. The installer skips silently in non-git checkouts and refuses to overwrite a custom `core.hooksPath` you already set.
 
