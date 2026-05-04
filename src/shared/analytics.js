@@ -31,6 +31,9 @@ export const EVENTS = {
   FLOATING_POPUP_SHOWN: "floating_popup_shown",
   FLOATING_COPY_CLICKED: "floating_copy_clicked",
   DEMO_OPENED: "demo_opened",
+  WELCOME_VIEWED: "welcome_viewed",
+  WELCOME_DISMISSED: "welcome_dismissed",
+  WELCOME_DEMO_CLICKED: "welcome_demo_clicked",
 };
 
 const OPT_OUT_STORAGE_KEY = "analyticsOptOut";
@@ -47,9 +50,9 @@ const browser =
 // own popup / content script / service worker.
 const isExtensionRuntime = Boolean(
   browser &&
-    browser.runtime &&
-    browser.runtime.id &&
-    typeof browser.runtime.sendMessage === "function",
+  browser.runtime &&
+  browser.runtime.id &&
+  typeof browser.runtime.sendMessage === "function",
 );
 
 /**

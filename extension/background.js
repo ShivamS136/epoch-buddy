@@ -134,6 +134,39 @@
     } catch {
     }
   }
+  var WELCOME_PAGE_PATH = "welcome.html";
+  var WELCOME_SHOWN_KEY = "welcomePageShown";
+  async function openWelcomeIfNeeded() {
+    const shown = await new Promise((resolve) => {
+      try {
+        browser.storage.local.get({ [WELCOME_SHOWN_KEY]: false }, (res) => {
+          resolve(Boolean((res || {})[WELCOME_SHOWN_KEY]));
+        });
+      } catch {
+        resolve(false);
+      }
+    });
+    if (shown) return;
+    await new Promise((resolve) => {
+      try {
+        browser.tabs.create(
+          { url: browser.runtime.getURL(WELCOME_PAGE_PATH) },
+          () => resolve()
+        );
+      } catch {
+        resolve();
+      }
+    });
+    try {
+      browser.storage.local.set({ [WELCOME_SHOWN_KEY]: true });
+    } catch {
+    }
+  }
+  browser.runtime.onInstalled.addListener((details) => {
+    if (!details) return;
+    if (details.reason !== "install" && details.reason !== "update") return;
+    openWelcomeIfNeeded();
+  });
   browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || message.type !== "ga:track") return false;
     const name = typeof message.name === "string" ? message.name : null;

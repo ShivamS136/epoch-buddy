@@ -688,7 +688,10 @@
     RATING_FOOTER_ACTION: "rating_footer_action",
     FLOATING_POPUP_SHOWN: "floating_popup_shown",
     FLOATING_COPY_CLICKED: "floating_copy_clicked",
-    DEMO_OPENED: "demo_opened"
+    DEMO_OPENED: "demo_opened",
+    WELCOME_VIEWED: "welcome_viewed",
+    WELCOME_DISMISSED: "welcome_dismissed",
+    WELCOME_DEMO_CLICKED: "welcome_demo_clicked"
   };
   var OPT_OUT_STORAGE_KEY = "analyticsOptOut";
   var DEMO_OPT_OUT_STORAGE_KEY = "epochBuddyAnalyticsOptOut";

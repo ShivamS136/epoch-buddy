@@ -151,6 +151,52 @@ async function sendEvent(name, params) {
   }
 }
 
+// Onboarding: open the welcome tab the FIRST time the user lands on a
+// version that ships it — whether that's a fresh install or an update from
+// an older build. The `welcomePageShown` flag in storage.local makes this a
+// once-ever event per profile (the flag survives updates but is wiped if
+// the extension is uninstalled, so a clean reinstall re-onboards). Suppressed
+// on browser_update / shared_module_update.
+const WELCOME_PAGE_PATH = "welcome.html";
+const WELCOME_SHOWN_KEY = "welcomePageShown";
+
+async function openWelcomeIfNeeded() {
+  const shown = await new Promise((resolve) => {
+    try {
+      browser.storage.local.get({ [WELCOME_SHOWN_KEY]: false }, (res) => {
+        resolve(Boolean((res || {})[WELCOME_SHOWN_KEY]));
+      });
+    } catch {
+      resolve(false);
+    }
+  });
+  if (shown) return;
+
+  await new Promise((resolve) => {
+    try {
+      browser.tabs.create(
+        { url: browser.runtime.getURL(WELCOME_PAGE_PATH) },
+        () => resolve(),
+      );
+    } catch {
+      resolve();
+    }
+  });
+
+  try {
+    browser.storage.local.set({ [WELCOME_SHOWN_KEY]: true });
+  } catch {
+    // Persisting the flag is best-effort; the only consequence of a write
+    // failure is showing the welcome page again on the next update.
+  }
+}
+
+browser.runtime.onInstalled.addListener((details) => {
+  if (!details) return;
+  if (details.reason !== "install" && details.reason !== "update") return;
+  openWelcomeIfNeeded();
+});
+
 browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message || message.type !== "ga:track") return false;
   const name = typeof message.name === "string" ? message.name : null;

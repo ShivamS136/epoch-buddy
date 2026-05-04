@@ -22,9 +22,33 @@ npm run build:chrome       # JS + patch manifest for Chrome/Edge (strips gecko f
 npm run build:firefox      # JS + patch manifest for Firefox (adds browser_specific_settings.gecko)
 npm run watch[:chrome|:firefox]   # esbuild watch; firefox variant restores manifest on SIGINT/SIGTERM
 npm run pack[:chrome|:firefox]    # build + produce dist/<target>.zip (always patches in a tmp dir; source manifest untouched)
+npm run check:secrets             # scan committed artifacts for forbidden analytics secrets (see Secret hygiene)
+npm run sanitize:analytics-config # reset chrome+firefox blocks in analytics.config.json from the example file (preserves demo)
 ```
 
 There is **no test suite and no lint command**. Prettier runs on save in VS Code (`.vscode/settings.json`); there is no CLI formatter invocation. So run prettier once all the changes are done.
+
+## Secret hygiene
+
+`analytics.config.json` is gitignored and holds real GA4 Measurement Protocol credentials for the chrome and firefox builds. Those credentials must NEVER end up in committed/distributed artifacts — `src/shared/generated/analyticsConfig.js` and the bundled `extension/*.js` + `docs/demo.js` are all checked in and shipped publicly. The `demo` gtag tag id is intentionally public and may stay in artifacts.
+
+Forbidden prefixes (defined in `scripts/forbidden-secrets.mjs`): `G-PM7`, `ernO`, `G-FC7`, `mGP2`. If you rotate a credential, update that list with the new prefixes.
+
+**Workflow before commit:**
+
+```bash
+npm run sanitize:analytics-config   # restores chrome+firefox to placeholders, keeps your demo key
+npm run build                       # regenerate artifacts so they no longer embed the secrets
+npm run check:secrets               # confirm clean (also runs automatically inside `npm run pack`)
+git add <regenerated artifacts>
+git commit ...
+```
+
+`npm run pack` already invokes the same scan as part of `verifyBuildArtifacts` and will fail rather than zip a leaky build.
+
+**Pre-commit hook**: `.githooks/pre-commit` reads the _staged_ version of each artifact and aborts if any forbidden prefix is present. It catches even the case where the working tree was sanitized but the index still has a stale leaky artifact. Wired automatically by `scripts/install-hooks.mjs` via npm's `prepare` lifecycle, so `npm install` after a fresh clone sets `core.hooksPath` to `.githooks` for you. The installer skips silently in non-git checkouts and refuses to overwrite a custom `core.hooksPath` you already set.
+
+If you legitimately need real chrome/firefox credentials in `analytics.config.json` for local testing, that's fine — just do NOT commit the regenerated artifacts. Run `npm run sanitize:analytics-config && npm run build` to clean up before staging.
 
 ## Architecture
 
@@ -32,13 +56,13 @@ There is **no test suite and no lint command**. Prettier runs on save in VS Code
 
 All three JS surfaces depend on these. Never duplicate parsing/formatting/clipboard/theme logic in an entry point — extend the shared module instead.
 
-| Module | Exports |
-|---|---|
-| `parsing.js` | `parseEpoch`, `parseDateInput`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` |
-| `formatting.js` | `pad2`, `pad3`, `buildConversionData`, `formatRelativeParts`, `formatTimeOnly`, `formatTimeZoneOffset` |
-| `clipboard.js` | `createCopyButton`, `bindLiveCopyButton` (both handle success/error visual states) |
-| `theme.js` | `loadThemeFromStorage`, `saveThemeToStorage`, `applyTheme`, `resolveTheme`, `onSystemThemeChange`, `updateToggleIcon`, `updateMenuActive` — supports `"light" \| "dark" \| "system"` |
-| `feedbackFormUrl.js` | `buildFeedbackFormUrl` — uses generated config + runtime manifest version + browser label |
+| Module               | Exports                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `parsing.js`         | `parseEpoch`, `parseDateInput`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields`                                                                       |
+| `formatting.js`      | `pad2`, `pad3`, `buildConversionData`, `formatRelativeParts`, `formatTimeOnly`, `formatTimeZoneOffset`                                                                               |
+| `clipboard.js`       | `createCopyButton`, `bindLiveCopyButton` (both handle success/error visual states)                                                                                                   |
+| `theme.js`           | `loadThemeFromStorage`, `saveThemeToStorage`, `applyTheme`, `resolveTheme`, `onSystemThemeChange`, `updateToggleIcon`, `updateMenuActive` — supports `"light" \| "dark" \| "system"` |
+| `feedbackFormUrl.js` | `buildFeedbackFormUrl` — uses generated config + runtime manifest version + browser label                                                                                            |
 
 ### Build pipeline (`scripts/build.mjs`)
 

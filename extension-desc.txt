@@ -117,6 +117,15 @@ PERFECT FOR
 - Anyone tired of Googling "epoch to date converter"
 
 
+WHAT'S NEW IN v1.8.0
+
+- First-time welcome tab: when you install Epoch Buddy — or update from an
+  older version — a single welcome page opens once with a quick guided tour of
+  what lives inside the toolbar menu (Epoch ↔ Date, Relative, ISO mode,
+  history, multi-timezone) and browser-specific instructions for pinning the
+  icon so it's always one click away. Shown only on the first install/update;
+  never again on later updates.
+
 WHAT'S NEW IN v1.7.0
 
 - New Settings → Analytics toggle: opt out of anonymous usage counts at

@@ -27,13 +27,20 @@ src/
     feedbackFormUrl.js #   Google Form URL builder for low-star feedback
   popup/main.js        # Extension popup entry point
   content/main.js      # Content script entry point
-  background/main.js   # Extension background service worker (GA4 MP egress)
+  background/main.js   # Extension background service worker (GA4 MP egress + first-install welcome tab)
+  welcome/main.js      # First-install onboarding tab entry point
   demo/main.js         # Docs demo page entry point
 extension/             # Extension package (HTML, CSS, manifest + BUILT JS)
 docs/                  # GitHub Pages website (HTML, CSS + BUILT demo.js)
-scripts/build.mjs      # Build, watch, and packaging script
-feedback-form.config.json  # Google Form base URL + entry keys (1–3 star feedback); used by build
-analytics.config.json       # GA4 measurement IDs + API secrets (chrome/firefox/demo); gitignored
+scripts/
+  build.mjs                    # Build, watch, and packaging script
+  forbidden-secrets.mjs        # Single source of truth for the secret-prefix block list
+  check-secrets.mjs            # Standalone scanner (npm run check:secrets)
+  sanitize-analytics-config.mjs # Reset chrome+firefox blocks from example, keep demo (npm run sanitize:analytics-config)
+  install-hooks.mjs            # Auto-wires .githooks via npm prepare lifecycle
+.githooks/pre-commit           # Staged-content scan for forbidden secret prefixes
+feedback-form.config.json      # Google Form base URL + entry keys (1–3 star feedback); used by build
+analytics.config.json          # GA4 measurement IDs + API secrets (chrome/firefox/demo); gitignored
 analytics.config.example.json  # Committed template to copy from
 ```
 
@@ -45,35 +52,38 @@ Before bundling, the build emits two generated modules (do not edit them by hand
 
 ### Key shared modules
 
-| Module                      | Purpose                                                                                                                                                                                                                                                                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `shared/parsing.js`         | `parseEpoch`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` -- validates and normalizes all user input. `parseIsoString` accepts any IANA zone (not just `utc`) as the fallback and resolves offset-less strings via `zoneOffsetMinutes` |
-| `shared/formatting.js`      | Formats dates, relative time strings, and timezone offsets for display. Also exports `buildZoneRows`, `zoneDisplayLabel`, `formatOffsetInZone`, `zoneOffsetMinutes` for multi-zone rendering                                                                              |
-| `shared/clipboard.js`       | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback                                                                                                                                          |
-| `shared/theme.js`           | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class                                                                                                                                                                         |
-| `shared/timezones.js`       | User-configurable timezone list: `DEFAULT_TIMEZONES`, `isValidTimezone`, `getAvailableTimezones`, `load/saveTimezonesToStorage`, `onTimezonesChanged` (storage sync across surfaces)                                                                                      |
-| `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels                                                                                                                             |
+| Module                      | Purpose                                                                                                                                                                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shared/parsing.js`         | `parseEpoch`, `parseDateField`, `parseTimePart`, `parseIsoString`, `normalizeRelativeFields` -- validates and normalizes all user input. `parseIsoString` accepts any IANA zone (not just `utc`) as the fallback and resolves offset-less strings via `zoneOffsetMinutes`               |
+| `shared/formatting.js`      | Formats dates, relative time strings, and timezone offsets for display. Also exports `buildZoneRows`, `zoneDisplayLabel`, `formatOffsetInZone`, `zoneOffsetMinutes` for multi-zone rendering                                                                                            |
+| `shared/clipboard.js`       | `copyToClipboard` for inline copy, `bindLiveCopyButton` for buttons with success/error animations and optional `onCopy` callback                                                                                                                                                        |
+| `shared/theme.js`           | Reads/writes theme preference (localStorage or `chrome.storage`), applies dark/light/system class                                                                                                                                                                                       |
+| `shared/timezones.js`       | User-configurable timezone list: `DEFAULT_TIMEZONES`, `isValidTimezone`, `getAvailableTimezones`, `load/saveTimezonesToStorage`, `onTimezonesChanged` (storage sync across surfaces)                                                                                                    |
+| `shared/feedbackFormUrl.js` | Builds pre-filled Google Form URLs for low star ratings using generated `feedbackFormConfig.js` plus live manifest version and browser labels                                                                                                                                           |
 | `shared/analytics.js`       | `trackEvent(name, params)`, `EVENTS` constants, `getOptOut` / `setOptOut`. Routes to background SW (extension context) or `gtag.js` (demo web context). Opt-out is keyed on `analyticsOptOut` (extension) / `epochBuddyAnalyticsOptOut` (demo); demo also honors `navigator.doNotTrack` |
 
 ### Build commands
 
-| Command                 | What it does                                                   |
-| ----------------------- | -------------------------------------------------------------- |
-| `npm run build`         | One-shot JS build (manifest unchanged)                         |
-| `npm run build:chrome`  | JS build + set manifest for Chrome/Edge                        |
-| `npm run build:firefox` | JS build + set manifest for Firefox                            |
-| `npm run watch`         | Watch mode, rebuild on change (manifest unchanged)             |
-| `npm run watch:chrome`  | Watch mode + set manifest for Chrome/Edge                      |
-| `npm run watch:firefox` | Watch mode + set manifest for Firefox (restores on exit)       |
-| `npm run pack:chrome`   | Build + zip for Chrome (`dist/chrome.zip`)                     |
-| `npm run pack:firefox`  | Build + zip for Firefox (`dist/firefox.zip`, manifest patched) |
-| `npm run pack`          | Build both zips                                                |
+| Command                             | What it does                                                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `npm run build`                     | One-shot JS build (manifest unchanged)                                                                         |
+| `npm run build:chrome`              | JS build + set manifest for Chrome/Edge                                                                        |
+| `npm run build:firefox`             | JS build + set manifest for Firefox                                                                            |
+| `npm run watch`                     | Watch mode, rebuild on change (manifest unchanged)                                                             |
+| `npm run watch:chrome`              | Watch mode + set manifest for Chrome/Edge                                                                      |
+| `npm run watch:firefox`             | Watch mode + set manifest for Firefox (restores on exit)                                                       |
+| `npm run pack:chrome`               | Build + zip for Chrome (`dist/chrome.zip`)                                                                     |
+| `npm run pack:firefox`              | Build + zip for Firefox (`dist/firefox.zip`, manifest patched)                                                 |
+| `npm run pack`                      | Build both zips                                                                                                |
+| `npm run check:secrets`             | Scan committed/built artifacts for forbidden analytics-secret prefixes (see _Secret hygiene_)                  |
+| `npm run sanitize:analytics-config` | Reset chrome + firefox blocks in `analytics.config.json` from the example file (preserves your local demo key) |
 
 Built files:
 
 - `extension/index.js` -- from `src/popup/main.js`
 - `extension/script.js` -- from `src/content/main.js`
-- `extension/background.js` -- from `src/background/main.js` (MV3 service worker that receives `ga:track` messages and POSTs to GA4 Measurement Protocol)
+- `extension/background.js` -- from `src/background/main.js` (MV3 service worker that receives `ga:track` messages and POSTs to GA4 Measurement Protocol; also opens the welcome tab once on install/update)
+- `extension/welcome.js` -- from `src/welcome/main.js` (powers `extension/welcome.html`)
 - `docs/demo.js` -- from `src/demo/main.js`
 - `src/shared/generated/feedbackFormConfig.js` -- from `feedback-form.config.json` (popup 1–3 star feedback links)
 - `src/shared/generated/analyticsConfig.js` -- from `analytics.config.json` (GA4 credentials)
@@ -122,7 +132,45 @@ npm run pack           # both
 
 Pack commands always produce a clean zip for the target browser, regardless of the current state of `extension/manifest.json`.
 
-Pack also runs verification on the bundled output and fails if any bundled JS assigns to `.innerHTML` or if any dotfile made it into the zip. Use `textContent` / `createElement` in extension code instead of `.innerHTML =`.
+Pack also runs verification on the bundled output and fails if:
+
+- any bundled JS uses a banned DOM-write pattern (currently `.innerHTML =` assignment — use `textContent` / `createElement` / `replaceChildren` instead)
+- any committed/built artifact contains a forbidden analytics-secret prefix (see _Secret hygiene_ below)
+- any dotfile made it into the zip
+
+### Secret hygiene
+
+`analytics.config.json` is gitignored and holds real GA4 Measurement Protocol credentials for the chrome and firefox builds. Those credentials must NEVER end up in committed artifacts — `src/shared/generated/analyticsConfig.js` and the bundled `extension/*.js` + `docs/demo.js` are checked in and shipped publicly. The `demo` gtag tag id is intentionally public and is fine to leave in artifacts.
+
+Forbidden prefixes are defined in `scripts/forbidden-secrets.mjs`. If you rotate a credential, add the new prefix there.
+
+**Workflow before committing built artifacts:**
+
+```bash
+npm run sanitize:analytics-config   # restores chrome+firefox to placeholders, keeps your demo key
+npm run build                       # regenerate artifacts so they no longer embed the secrets
+npm run check:secrets               # confirm clean (also runs as part of `npm run pack`)
+git add <regenerated artifacts>
+git commit ...
+```
+
+`scripts/install-hooks.mjs` runs via npm's `prepare` lifecycle, so `npm install` after a fresh clone wires `.githooks` as `core.hooksPath` automatically. The `.githooks/pre-commit` hook scans the _staged_ version of each tracked artifact (not just the working tree) and aborts the commit if any forbidden prefix would land in HEAD. The installer is idempotent and refuses to clobber a custom `core.hooksPath` you already set — in that case enable manually with `git config core.hooksPath .githooks` or merge `.githooks/pre-commit` into your existing setup.
+
+If you legitimately need real chrome/firefox credentials in `analytics.config.json` for local testing, that's fine — just run `npm run sanitize:analytics-config && npm run build` before staging so the regenerated artifacts come out clean.
+
+### First-install welcome tab
+
+`src/background/main.js` listens for `runtime.onInstalled` with reason `install` or `update`, and opens `extension/welcome.html` in a new tab the first time. A `welcomePageShown` flag in `chrome.storage.local` makes this a once-ever event per profile (the flag survives updates but is wiped on uninstall, so a clean reinstall re-onboards). `browser_update` and `shared_module_update` are ignored.
+
+The welcome page (`extension/welcome.html` + `extension/welcome.css`, JS bundled from `src/welcome/main.js`):
+
+- detects Chrome/Edge vs Firefox via `runtime.getManifest().browser_specific_settings?.gecko` and renders the appropriate "pin to toolbar" steps
+- bootstraps the user's saved theme preference from `chrome.storage.local` (and listens for changes so toggling theme in the popup re-themes the welcome tab live)
+- emits three GA events (`welcome_viewed`, `welcome_dismissed`, `welcome_demo_clicked`) so onboarding adoption can be measured against popup engagement
+
+Like the other extension surfaces, it uses `textContent` and `createElement` only and is covered by the same banned-DOM-write pack check listed above (`extension/welcome.js` is in the scan list).
+
+To re-trigger onboarding while developing: open the service-worker DevTools and run `chrome.storage.local.remove("welcomePageShown")`, then reload the extension. (`onInstalled` does not refire on a manual reload — to test the install path itself, remove and re-add the unpacked extension.)
 
 ### Input conventions
 

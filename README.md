@@ -29,6 +29,7 @@ A browser extension that converts epoch timestamps into human-readable dates (an
 
 - **Timezone settings (v1.6+)**: Open the gear icon in the header to add any IANA timezone, remove ones you do not need, and drag-and-drop to reorder. The configured list drives the on-page popup, all three converter tabs, history entries, and the ISO fallback-timezone picker.
 - **Analytics opt-out (v1.7+)**: Settings includes an Analytics toggle. Only anonymous event names and a random install ID are ever sent — never your conversion values, selected text, or page content. See the [privacy policy](https://shivams136.github.io/epoch-buddy/privacy.html) for the full list.
+- **First-install welcome page (v1.8+)**: A one-time onboarding tab opens on a fresh install (or first update from an older version) with browser-specific pin-to-toolbar instructions and a quick tour of the popup features. Shown only once per install.
 - **Smart validation**: All numeric fields enforce min/max ranges, show per-field error highlighting, and default to zero on blur for time fields (date fields require a value).
 - **History**: Last 10 conversions with quick copy buttons and a clear button. Each entry expands to show per-timezone rows.
 - **Dark Mode**: Supports dark mode in both the extension menu and the popup. A polished segmented theme picker appears in both the header and the Settings page.
