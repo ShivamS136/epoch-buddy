@@ -74,7 +74,7 @@ import {
     isFirefoxExtension() ? STORE_REVIEW_URL_FIREFOX : STORE_REVIEW_URL_CHROME;
 
   const openFeedbackFormForStars = (stars) => {
-    let manifestVersion = "";
+    let manifestVersion;
     try {
       manifestVersion = browser.runtime.getManifest().version ?? "";
     } catch {
@@ -1203,10 +1203,22 @@ import {
 
   // ── Settings view ──────────────────────────────────────────────
 
+  // Defer loading any remote images in Settings (e.g. the Chai4Me wordmark)
+  // until the user actually opens Settings — fetching them on popup open
+  // blocks the load event and delays the popup's first paint.
+  const loadDeferredSettingsImages = () => {
+    if (!settingsViewEl) return;
+    settingsViewEl.querySelectorAll("img[data-src]").forEach((img) => {
+      img.src = img.dataset.src;
+      delete img.dataset.src;
+    });
+  };
+
   const showSettingsView = () => {
     if (!settingsViewEl || !mainViewEl) return;
     mainViewEl.hidden = true;
     settingsViewEl.hidden = false;
+    loadDeferredSettingsImages();
     if (ratingFooterEl)
       ratingFooterEl.dataset.prevHidden = ratingFooterEl.hidden ? "1" : "0";
     if (ratingFooterEl) ratingFooterEl.hidden = true;
@@ -1570,7 +1582,9 @@ import {
     populateTimezoneSelect();
     populateDateTimeFields(false);
     populateRelativeDefaults();
-    renderSettingsView();
+    // Settings view is hidden on open; rendering its full ~400-zone "Add
+    // Timezone" dropdown here would block popup paint for no reason.
+    // showSettingsView() renders it lazily when the gear is actually clicked.
     loadHistory();
     trackEvent(EVENTS.POPUP_OPENED);
   });
@@ -1578,7 +1592,9 @@ import {
   onTimezonesChanged((zones) => {
     currentZones = zones;
     populateTimezoneSelect();
-    renderSettingsView();
+    // Only re-render settings if the user is currently looking at it; otherwise
+    // it's rebuilt fresh on the next showSettingsView().
+    if (settingsViewEl && !settingsViewEl.hidden) renderSettingsView();
     refreshVisibleResults();
   });
 
@@ -1594,4 +1610,67 @@ import {
   }
 
   initRatingUi();
+
+  // ── Popup-open performance canary ─────────────────────────────────
+  // Field telemetry so a regression like a remote resource blocking first
+  // paint surfaces in analytics instead of going unnoticed. Sent as its own
+  // event (not folded into popup_opened) because FCP can land after `load`,
+  // and it rides the same analytics opt-out as every other event.
+  let perfReported = false;
+  const sendOpenPerf = (fcpMs) => {
+    if (perfReported) return;
+    perfReported = true;
+    try {
+      const nav = performance.getEntriesByType?.("navigation")?.[0];
+      const num = (v) =>
+        typeof v === "number" && v > 0 ? Math.round(v) : null;
+      const fcp = num(fcpMs);
+      const fcpBucket =
+        fcp == null
+          ? "unknown"
+          : fcp < 50
+            ? "0-50"
+            : fcp < 150
+              ? "50-150"
+              : fcp < 300
+                ? "150-300"
+                : fcp < 600
+                  ? "300-600"
+                  : fcp < 1000
+                    ? "600-1000"
+                    : "1000+";
+      trackEvent(EVENTS.POPUP_PERF, {
+        fcp_ms: fcp,
+        fcp_bucket: fcpBucket,
+        dom_interactive_ms: num(nav?.domInteractive),
+        dom_complete_ms: num(nav?.domComplete),
+        tz_count: currentZones.length,
+      });
+    } catch {
+      // Telemetry must never affect UX.
+    }
+  };
+
+  // Capture FCP whenever it occurs (buffered, so we get it even if it already
+  // happened before this observer was wired up).
+  try {
+    const fcpObserver = new PerformanceObserver((list, obs) => {
+      const fcp = list
+        .getEntries()
+        .find((e) => e.name === "first-contentful-paint");
+      if (fcp) {
+        obs.disconnect();
+        sendOpenPerf(fcp.startTime);
+      }
+    });
+    fcpObserver.observe({ type: "paint", buffered: true });
+  } catch {
+    // PerformanceObserver / paint timing unsupported (e.g. older Firefox).
+  }
+  // Fallback: if FCP never reports, still send nav timings shortly after load.
+  window.addEventListener(
+    "load",
+    () => setTimeout(() => sendOpenPerf(null), 1000),
+    { once: true },
+  );
 })();

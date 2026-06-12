@@ -50,6 +50,7 @@
   // src/shared/analytics.js
   var EVENTS = {
     POPUP_OPENED: "popup_opened",
+    POPUP_PERF: "popup_perf",
     EPOCH_TO_DATE: "epoch_to_date",
     DATE_TO_EPOCH: "date_to_epoch",
     UTC_TO_EPOCH: "utc_to_epoch",

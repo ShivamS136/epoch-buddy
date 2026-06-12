@@ -121,6 +121,19 @@
     }
     return ZONE_FORMATTER_CACHE.get(timeZone);
   };
+  var OFFSET_FORMATTER_CACHE = /* @__PURE__ */ new Map();
+  var getOffsetFormatter = (timeZone) => {
+    if (!OFFSET_FORMATTER_CACHE.has(timeZone)) {
+      OFFSET_FORMATTER_CACHE.set(
+        timeZone,
+        new Intl.DateTimeFormat("en-US", {
+          timeZone,
+          timeZoneName: "longOffset"
+        })
+      );
+    }
+    return OFFSET_FORMATTER_CACHE.get(timeZone);
+  };
   var canonZone = (zone) => {
     if (!zone) return "local";
     const lower = String(zone).toLowerCase();
@@ -165,11 +178,7 @@
     if (c === "local") return formatTimeZoneOffset(date, true);
     if (c === "utc") return "+00:00";
     try {
-      const fmt = new Intl.DateTimeFormat("en-US", {
-        timeZone: c,
-        timeZoneName: "longOffset"
-      });
-      const parts = fmt.formatToParts(date);
+      const parts = getOffsetFormatter(c).formatToParts(date);
       const tzPart = parts.find((p) => p.type === "timeZoneName");
       if (tzPart?.value) {
         const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
@@ -226,11 +235,9 @@
   };
   var offsetMinutesAt = (instantMs, timeZone) => {
     try {
-      const fmt = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        timeZoneName: "longOffset"
-      });
-      const parts = fmt.formatToParts(new Date(instantMs));
+      const parts = getOffsetFormatter(timeZone).formatToParts(
+        new Date(instantMs)
+      );
       const tzPart = parts.find((p) => p.type === "timeZoneName");
       if (!tzPart?.value) return 0;
       const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
@@ -674,6 +681,7 @@
   // src/shared/analytics.js
   var EVENTS = {
     POPUP_OPENED: "popup_opened",
+    POPUP_PERF: "popup_perf",
     EPOCH_TO_DATE: "epoch_to_date",
     DATE_TO_EPOCH: "date_to_epoch",
     UTC_TO_EPOCH: "utc_to_epoch",
@@ -811,7 +819,7 @@
     };
     const getStoreReviewUrl = () => isFirefoxExtension() ? STORE_REVIEW_URL_FIREFOX : STORE_REVIEW_URL_CHROME;
     const openFeedbackFormForStars = (stars) => {
-      let manifestVersion = "";
+      let manifestVersion;
       try {
         manifestVersion = browser2.runtime.getManifest().version ?? "";
       } catch {
@@ -1755,10 +1763,18 @@
       }
       loadHistory();
     };
+    const loadDeferredSettingsImages = () => {
+      if (!settingsViewEl) return;
+      settingsViewEl.querySelectorAll("img[data-src]").forEach((img) => {
+        img.src = img.dataset.src;
+        delete img.dataset.src;
+      });
+    };
     const showSettingsView = () => {
       if (!settingsViewEl || !mainViewEl) return;
       mainViewEl.hidden = true;
       settingsViewEl.hidden = false;
+      loadDeferredSettingsImages();
       if (ratingFooterEl)
         ratingFooterEl.dataset.prevHidden = ratingFooterEl.hidden ? "1" : "0";
       if (ratingFooterEl) ratingFooterEl.hidden = true;
@@ -2072,14 +2088,13 @@
       populateTimezoneSelect();
       populateDateTimeFields(false);
       populateRelativeDefaults();
-      renderSettingsView();
       loadHistory();
       trackEvent(EVENTS.POPUP_OPENED);
     });
     onTimezonesChanged((zones) => {
       currentZones = zones;
       populateTimezoneSelect();
-      renderSettingsView();
+      if (settingsViewEl && !settingsViewEl.hidden) renderSettingsView();
       refreshVisibleResults();
     });
     loadThemeFromStorage((pref) => {
@@ -2093,5 +2108,40 @@
       });
     }
     initRatingUi();
+    let perfReported = false;
+    const sendOpenPerf = (fcpMs) => {
+      if (perfReported) return;
+      perfReported = true;
+      try {
+        const nav = performance.getEntriesByType?.("navigation")?.[0];
+        const num = (v) => typeof v === "number" && v > 0 ? Math.round(v) : null;
+        const fcp = num(fcpMs);
+        const fcpBucket = fcp == null ? "unknown" : fcp < 50 ? "0-50" : fcp < 150 ? "50-150" : fcp < 300 ? "150-300" : fcp < 600 ? "300-600" : fcp < 1e3 ? "600-1000" : "1000+";
+        trackEvent(EVENTS.POPUP_PERF, {
+          fcp_ms: fcp,
+          fcp_bucket: fcpBucket,
+          dom_interactive_ms: num(nav?.domInteractive),
+          dom_complete_ms: num(nav?.domComplete),
+          tz_count: currentZones.length
+        });
+      } catch {
+      }
+    };
+    try {
+      const fcpObserver = new PerformanceObserver((list, obs) => {
+        const fcp = list.getEntries().find((e) => e.name === "first-contentful-paint");
+        if (fcp) {
+          obs.disconnect();
+          sendOpenPerf(fcp.startTime);
+        }
+      });
+      fcpObserver.observe({ type: "paint", buffered: true });
+    } catch {
+    }
+    window.addEventListener(
+      "load",
+      () => setTimeout(() => sendOpenPerf(null), 1e3),
+      { once: true }
+    );
   })();
 })();

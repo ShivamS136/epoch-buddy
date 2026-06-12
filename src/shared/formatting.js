@@ -141,6 +141,24 @@ const getZoneFormatter = (timeZone) => {
   return ZONE_FORMATTER_CACHE.get(timeZone);
 };
 
+// Constructing Intl.DateTimeFormat is the dominant cost when rendering many
+// zones (e.g. the settings "Add Timezone" list). Cache the offset formatters
+// so each zone's formatter is built at most once per session.
+const OFFSET_FORMATTER_CACHE = new Map();
+
+const getOffsetFormatter = (timeZone) => {
+  if (!OFFSET_FORMATTER_CACHE.has(timeZone)) {
+    OFFSET_FORMATTER_CACHE.set(
+      timeZone,
+      new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        timeZoneName: "longOffset",
+      }),
+    );
+  }
+  return OFFSET_FORMATTER_CACHE.get(timeZone);
+};
+
 /**
  * Normalize "local" / "utc" sentinels; returns a canonical form: one of
  * "local", "utc", or an IANA zone name as-is.
@@ -199,11 +217,7 @@ export const formatOffsetInZone = (date, zone) => {
   if (c === "local") return formatTimeZoneOffset(date, true);
   if (c === "utc") return "+00:00";
   try {
-    const fmt = new Intl.DateTimeFormat("en-US", {
-      timeZone: c,
-      timeZoneName: "longOffset",
-    });
-    const parts = fmt.formatToParts(date);
+    const parts = getOffsetFormatter(c).formatToParts(date);
     const tzPart = parts.find((p) => p.type === "timeZoneName");
     if (tzPart?.value) {
       const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
@@ -290,11 +304,9 @@ export const zoneOffsetMinutes = (
 
 const offsetMinutesAt = (instantMs, timeZone) => {
   try {
-    const fmt = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      timeZoneName: "longOffset",
-    });
-    const parts = fmt.formatToParts(new Date(instantMs));
+    const parts = getOffsetFormatter(timeZone).formatToParts(
+      new Date(instantMs),
+    );
     const tzPart = parts.find((p) => p.type === "timeZoneName");
     if (!tzPart?.value) return 0;
     const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);

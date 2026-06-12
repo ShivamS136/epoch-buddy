@@ -171,7 +171,8 @@ function readManifest() {
 }
 
 function writeManifest(manifest) {
-  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 4) + "\n");
+  // 2-space to match Prettier, which now formats manifest.json too.
+  fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
 }
 
 /**

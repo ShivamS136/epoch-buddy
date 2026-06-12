@@ -102,6 +102,19 @@
       relative: formatRelative(epochMs)
     };
   };
+  var OFFSET_FORMATTER_CACHE = /* @__PURE__ */ new Map();
+  var getOffsetFormatter = (timeZone) => {
+    if (!OFFSET_FORMATTER_CACHE.has(timeZone)) {
+      OFFSET_FORMATTER_CACHE.set(
+        timeZone,
+        new Intl.DateTimeFormat("en-US", {
+          timeZone,
+          timeZoneName: "longOffset"
+        })
+      );
+    }
+    return OFFSET_FORMATTER_CACHE.get(timeZone);
+  };
   var canonZone = (zone) => {
     if (!zone) return "local";
     const lower = String(zone).toLowerCase();
@@ -131,11 +144,9 @@
   };
   var offsetMinutesAt = (instantMs, timeZone) => {
     try {
-      const fmt = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        timeZoneName: "longOffset"
-      });
-      const parts = fmt.formatToParts(new Date(instantMs));
+      const parts = getOffsetFormatter(timeZone).formatToParts(
+        new Date(instantMs)
+      );
       const tzPart = parts.find((p) => p.type === "timeZoneName");
       if (!tzPart?.value) return 0;
       const match = tzPart.value.match(/([+-])(\d{1,2}):?(\d{0,2})?/);
@@ -322,6 +333,7 @@
   // src/shared/analytics.js
   var EVENTS = {
     POPUP_OPENED: "popup_opened",
+    POPUP_PERF: "popup_perf",
     EPOCH_TO_DATE: "epoch_to_date",
     DATE_TO_EPOCH: "date_to_epoch",
     UTC_TO_EPOCH: "utc_to_epoch",
