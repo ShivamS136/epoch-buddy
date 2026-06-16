@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="theme.css" />
+    <!-- gen-store-images.mjs injects <base href> + window.SLIDE before these scripts run -->
+  </head>
+  <body>
+    <div class="stage">
+      <!-- shared background (identical on every slide): blobs + bottom waves -->
+      <div
+        class="blob"
+        style="width:340px;height:340px;right:90px;top:-120px;background:radial-gradient(circle,rgba(99,102,241,.30),transparent 70%)"
+      ></div>
+      <div
+        class="blob"
+        style="width:320px;height:320px;left:-70px;bottom:-90px;background:radial-gradient(circle,rgba(20,184,166,.28),transparent 70%)"
+      ></div>
+      <svg class="wave" viewBox="0 0 1280 130" preserveAspectRatio="none" width="1280" height="130">
+        <path d="M0 70C210 18 430 116 690 66C910 22 1110 100 1280 54V130H0Z" fill="rgba(20,184,166,.08)" />
+        <path d="M0 96C230 50 470 128 720 86C950 48 1130 116 1280 82V130H0Z" fill="rgba(99,102,241,.08)" />
+      </svg>
+
+      <!-- movable accent decor (sparkles/dots/rings/squiggle) — filled per slide by hydrate.js -->
+      <div class="decor"></div>
+
+      <div class="screen-wrap">
+        <div class="brand fixed">
+          <img src="img/logo-transparent.png" alt="" /><span class="name">Epoch&nbsp;Buddy</span>
+        </div>
+
+        <div class="screen-text">
+          <span class="kicker"><span class="dot"></span><span class="kicker-text"></span></span>
+          <div class="headline"></div>
+          <span class="badge">
+            <span class="badge-ic">
+              <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z" /></svg>
+            </span>
+            <span class="badge-text"></span>
+          </span>
+          <ul class="blist"></ul>
+        </div>
+
+        <!-- one or more screenshot cards, built from window.SLIDE.devices -->
+        <div class="devices"></div>
+
+        <svg class="arrows">
+          <defs>
+            <marker
+              id="ah"
+              markerWidth="13"
+              markerHeight="9"
+              refX="8"
+              refY="4.5"
+              orient="auto"
+              markerUnits="userSpaceOnUse"
+            >
+              <path d="M0.5,0.5 L9,4.5 L0.5,8.5 L3,4.5 Z" fill="#4f46e5" />
+            </marker>
+            <marker
+              id="ah-teal"
+              markerWidth="13"
+              markerHeight="9"
+              refX="8"
+              refY="4.5"
+              orient="auto"
+              markerUnits="userSpaceOnUse"
+            >
+              <path d="M0.5,0.5 L9,4.5 L0.5,8.5 L3,4.5 Z" fill="#0f766e" />
+            </marker>
+            <marker
+              id="ah-bright"
+              markerWidth="13"
+              markerHeight="9"
+              refX="8"
+              refY="4.5"
+              orient="auto"
+              markerUnits="userSpaceOnUse"
+            >
+              <path d="M0.5,0.5 L9,4.5 L0.5,8.5 L3,4.5 Z" fill="#2dd4bf" />
+            </marker>
+          </defs>
+        </svg>
+
+        <div class="foot"></div>
+      </div>
+    </div>
+
+    <script src="icons.js"></script>
+    <script src="hydrate.js"></script>
+    <script src="annotate.js"></script>
+  </body>
+</html>

@@ -4,6 +4,10 @@
 node_modules/
 dist/
 
+# Store-image generator: regenerated pages + output PNGs (run `npm run gen:store` to rebuild)
+assets/store/pages/
+assets/store/images/
+
 # GA Config
 analytics.config.json
 analytics.config.values.json

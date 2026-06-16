@@ -1,0 +1,168 @@
+/* ============================================================
+   Epoch Buddy — Chrome Web Store asset design system (v2)
+   Light / clean, indigo (#6366f1) + teal (#14b8a6) accents
+   Top-aligned slides · icon bullets · external arrow callouts
+   Fonts: Space Grotesk (display) + Inter (text)
+   ============================================================ */
+
+@font-face{font-family:"Space Grotesk";font-weight:500;font-style:normal;font-display:block;
+  src:url("fonts/space-grotesk-latin-500-normal.woff2") format("woff2");}
+@font-face{font-family:"Space Grotesk";font-weight:600;font-style:normal;font-display:block;
+  src:url("fonts/space-grotesk-latin-600-normal.woff2") format("woff2");}
+@font-face{font-family:"Space Grotesk";font-weight:700;font-style:normal;font-display:block;
+  src:url("fonts/space-grotesk-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;
+  src:url("fonts/inter-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;
+  src:url("fonts/inter-latin-500-normal.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;
+  src:url("fonts/inter-latin-600-normal.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:block;
+  src:url("fonts/inter-latin-700-normal.woff2") format("woff2");}
+@font-face{font-family:"Caveat";font-weight:400;font-style:normal;font-display:block;
+  src:url("fonts/caveat-latin-400-normal.woff2") format("woff2");}
+@font-face{font-family:"Caveat";font-weight:600;font-style:normal;font-display:block;
+  src:url("fonts/caveat-latin-600-normal.woff2") format("woff2");}
+@font-face{font-family:"Caveat";font-weight:700;font-style:normal;font-display:block;
+  src:url("fonts/caveat-latin-700-normal.woff2") format("woff2");}
+
+:root{
+  --bg:#f5f7fd; --ink:#0f172a; --ink-2:#334155; --ink-3:#64748b;
+  --card:#ffffff; --border:#e7eaf3;
+  --indigo:#6366f1; --indigo-deep:#4f46e5; --indigo-700:#4338ca; --indigo-50:#eef2ff;
+  --teal:#14b8a6; --teal-700:#0f766e; --cyan:#06b6d4;
+  --display:"Space Grotesk",system-ui,sans-serif; --text:"Inter",system-ui,sans-serif;
+  --hand:"Caveat",ui-rounded,"Segoe Print",cursive;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;}
+html,body{background:transparent;}
+
+.stage{position:relative;overflow:hidden;font-family:var(--text);color:var(--ink);
+  background:
+    radial-gradient(1100px 720px at 90% -14%, rgba(99,102,241,.15), transparent 60%),
+    radial-gradient(900px 680px at -8% 114%, rgba(20,184,166,.14), transparent 58%),
+    linear-gradient(180deg,#f7f9fe 0%, #eef1fb 100%);}
+.stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(rgba(79,70,229,.055) 1.2px, transparent 1.3px);
+  background-size:27px 27px;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.10));
+          mask-image:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.10));}
+.blob{position:absolute;border-radius:50%;filter:blur(8px);opacity:.5;pointer-events:none;}
+
+/* ---------- Brand mark (transparent logo, no badge) ---------- */
+.brand{display:flex;align-items:center;gap:13px;z-index:8;}
+.brand img{height:42px;width:auto;display:block;}
+.brand .name{font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:-.01em;color:var(--ink);}
+
+/* ---------- Kicker / headline / bullets ---------- */
+.kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--text);font-weight:700;
+  font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:var(--indigo-deep);
+  background:#fff;border:1px solid var(--border);padding:8px 15px;border-radius:999px;
+  box-shadow:0 4px 14px rgba(79,70,229,.07);}
+.kicker .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--indigo));}
+
+.headline{font-family:var(--display);font-weight:700;color:var(--ink);
+  font-size:45px;line-height:1.07;letter-spacing:-.025em;min-height:104px;}
+.headline .grad{background:linear-gradient(120deg,var(--indigo-deep) 0%, var(--indigo) 44%, var(--teal) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.blist{list-style:none;display:flex;flex-direction:column;gap:11px;}
+.blist li{display:flex;align-items:center;gap:14px;font-family:var(--text);
+  background:rgba(255,255,255,.72);border:1px solid var(--border);border-radius:15px;
+  padding:11px 15px;box-shadow:0 8px 20px -14px rgba(67,56,202,.4);}
+.blist li.simple{font-weight:600;font-size:19px;color:var(--ink-2);}
+/* colored gradient icon chip */
+.blist .bi{width:42px;height:42px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;
+  color:#fff;box-shadow:0 10px 18px -9px rgba(15,23,42,.45);
+  background:linear-gradient(140deg,var(--indigo),var(--indigo-deep));}
+.blist .bi.blue{background:linear-gradient(140deg,#60a5fa,#2563eb);}
+.blist .bi.green{background:linear-gradient(140deg,#34d399,#059669);}
+.blist .bi.purple{background:linear-gradient(140deg,#a78bfa,#7c3aed);}
+.blist .bi.teal{background:linear-gradient(140deg,#2dd4bf,#0d9488);}
+.blist .bi.dark{background:linear-gradient(140deg,#334155,#0f172a);}
+.blist .bi.amber{background:linear-gradient(140deg,#fbbf24,#d97706);}
+.blist .bi svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2.1;
+  stroke-linecap:round;stroke-linejoin:round;}
+/* title + description text block */
+.blist .bt{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.blist .bt .bttl{font-family:var(--text);font-weight:700;font-size:17px;color:var(--ink);
+  letter-spacing:-.01em;line-height:1.18;}
+.blist .bt .bdsc{font-family:var(--text);font-weight:500;font-size:14px;color:var(--ink-3);line-height:1.25;}
+/* auto-compact when a slide has 4+ bullets so the column still fits */
+.blist:has(> li:nth-child(4)){gap:8px;}
+.blist:has(> li:nth-child(4)) li{padding:9px 14px;}
+.blist:has(> li:nth-child(4)) .bi{width:38px;height:38px;border-radius:12px;}
+.blist:has(> li:nth-child(4)) .bi svg{width:19px;height:19px;}
+.blist:has(> li:nth-child(4)) .bt .bttl{font-size:16px;}
+.blist:has(> li:nth-child(4)) .bt .bdsc{font-size:13px;}
+
+/* ---------- Green "callout" badge ---------- */
+.badge{display:none;align-items:center;gap:9px;font-family:var(--text);font-weight:700;font-size:15px;
+  color:#047857;background:linear-gradient(135deg,#d1fae5,#cffafe);border:1px solid #a7f3d0;
+  padding:8px 15px 8px 11px;border-radius:999px;box-shadow:0 8px 20px -10px rgba(5,150,105,.45);}
+.badge.on{display:inline-flex;}
+.badge .badge-ic{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  color:#fff;background:linear-gradient(140deg,#34d399,#059669);}
+.badge .badge-ic svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round;}
+
+/* ---------- Device frame(s) ---------- */
+.devices{position:absolute;inset:0;z-index:4;}
+.device{position:absolute;transform-origin:center;}
+.device .card{position:relative;background:var(--card);border:1px solid var(--border);
+  border-radius:24px;padding:13px;
+  box-shadow:0 34px 70px -26px rgba(67,56,202,.40), 0 10px 26px -14px rgba(15,23,42,.16);}
+.device .card::after{content:"";position:absolute;inset:0;border-radius:24px;padding:1.4px;
+  background:linear-gradient(150deg, rgba(20,184,166,.5), rgba(99,102,241,0) 40%, rgba(99,102,241,.5));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.device .shot{display:block;border-radius:13px;overflow:hidden;background:#fff;}
+.device .shot img{display:block;width:100%;height:auto;}
+.device .glow{position:absolute;inset:-24px;border-radius:38px;z-index:-1;
+  background:radial-gradient(60% 60% at 50% 35%, rgba(99,102,241,.18), transparent 70%);filter:blur(10px);}
+
+/* ---------- External arrow callouts (curved / dashed / squiggle) ---------- */
+svg.arrows{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;overflow:visible;}
+svg.arrows .aline{stroke:var(--indigo-deep);stroke-width:2.6;fill:none;opacity:.9;
+  stroke-linecap:round;stroke-linejoin:round;}
+svg.arrows .aline.teal{stroke:var(--teal-700);}
+svg.arrows .aline.bright{stroke:#2dd4bf;opacity:1;}
+svg.arrows .aline.dashed{stroke-dasharray:7 8;}
+.anno{position:absolute;z-index:7;font-family:var(--text);font-weight:700;font-size:15px;color:#3730a3;
+  background:rgba(255,255,255,.96);border:1px solid #dfe3f1;border-radius:999px;padding:8px 15px;
+  box-shadow:0 12px 26px -12px rgba(67,56,202,.42);white-space:nowrap;}
+.anno.teal{color:var(--teal-700);border-color:#bfeee6;}
+/* handwritten "marker" note — no box, script font, can be multi-line via \n */
+.anno.hand{background:none;border:none;box-shadow:none;padding:0;border-radius:0;
+  font-family:var(--hand);font-weight:700;font-size:31px;line-height:.98;color:var(--indigo-deep);
+  white-space:pre-line;max-width:230px;text-align:center;
+  text-shadow:0 1px 0 rgba(255,255,255,.75);}
+.anno.hand.teal{color:var(--teal-700);}
+/* on-dark variants: vivid colors that pop over dark-theme screenshots */
+.anno.bright{color:#0f766e;border-color:#bfeee6;}
+.anno.hand.bright{color:#5eead4;text-shadow:0 1px 9px rgba(2,6,23,.6),0 0 2px rgba(2,6,23,.55);}
+
+/* ---------- Slide layout (1280x800), top-aligned ---------- */
+.screen-wrap{position:absolute;inset:0;z-index:3;}
+.brand.fixed{position:absolute;left:84px;top:58px;}
+.screen-text{position:absolute;left:84px;top:172px;width:474px;display:flex;flex-direction:column;align-items:flex-start;}
+.screen-text .headline{margin-top:18px;}
+.screen-text .badge{margin-top:18px;}
+.screen-text .blist{margin-top:18px;width:100%;}
+
+/* ---------- Footer note ---------- */
+.foot{position:absolute;z-index:5;font-family:var(--text);font-weight:500;font-size:14.5px;color:var(--ink-3);
+  display:flex;align-items:center;gap:9px;left:84px;bottom:40px;}
+.foot .d{width:5px;height:5px;border-radius:50%;background:var(--ink-3);opacity:.5;}
+
+/* ---------- Decorative background layer (sparkles · dots · rings · squiggle) ---------- */
+.decor{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+.decor .spark{position:absolute;display:block;filter:drop-shadow(0 4px 8px rgba(99,102,241,.18));}
+.decor .dots{position:absolute;background-image:radial-gradient(currentColor 1.7px, transparent 1.9px);
+  background-size:19px 19px;opacity:.22;
+  -webkit-mask-image:radial-gradient(closest-side, #000 30%, transparent 100%);
+          mask-image:radial-gradient(closest-side, #000 30%, transparent 100%);}
+.decor .ring{position:absolute;border-radius:50%;border-style:solid;opacity:.5;}
+.decor .squig{position:absolute;display:block;opacity:.5;}
+/* bottom waves live in the static background (direct child of .stage), not inside .decor */
+.wave{position:absolute;left:0;right:0;bottom:0;z-index:1;display:block;pointer-events:none;}

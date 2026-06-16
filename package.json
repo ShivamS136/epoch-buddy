@@ -15,6 +15,8 @@
     "pack:firefox": "node scripts/build.mjs --pack firefox",
     "check:secrets": "node scripts/check-secrets.mjs",
     "sanitize:analytics-config": "node scripts/sanitize-analytics-config.mjs",
+    "gen:store": "node scripts/gen-store-images.mjs",
+    "gen:store:pages": "node scripts/gen-store-images.mjs --pages-only",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -27,6 +29,8 @@
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.6.0",
-    "prettier": "^3.8.4"
+    "playwright": "^1.49.0",
+    "prettier": "^3.8.4",
+    "sharp": "^0.33.5"
   }
 }

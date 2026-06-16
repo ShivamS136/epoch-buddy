@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="theme.css" />
+    <style>
+      .t-wrap {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px 28px;
+        gap: 0;
+      }
+      .t-logo {
+        height: 74px;
+        width: auto;
+        display: block;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 12px 22px rgba(67, 56, 202, 0.2));
+      }
+      .t-name {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 34px;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .t-bar {
+        width: 58px;
+        height: 5px;
+        border-radius: 3px;
+        margin: 13px 0 12px;
+        background: linear-gradient(90deg, var(--teal), var(--indigo));
+      }
+      .t-tag {
+        font-family: var(--text);
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 1.35;
+        color: var(--ink-2);
+        max-width: 330px;
+      }
+      .t-tag b {
+        font-weight: 700;
+        color: var(--indigo-deep);
+      }
+      .wm {
+        position: absolute;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-weight: 600;
+        color: rgba(79, 70, 229, 0.06);
+        letter-spacing: 0.04em;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage" style="width:440px;height:280px">
+      <div
+        class="blob"
+        style="width:200px;height:200px;right:-50px;top:-60px;background:radial-gradient(circle,rgba(99,102,241,.30),transparent 70%)"
+      ></div>
+      <div
+        class="blob"
+        style="width:190px;height:190px;left:-55px;bottom:-60px;background:radial-gradient(circle,rgba(20,184,166,.28),transparent 70%)"
+      ></div>
+      <div class="wm" style="left:18px;top:14px;font-size:15px">1718223245</div>
+      <div class="wm" style="right:16px;bottom:12px;font-size:15px">→ 2024-06-13</div>
+
+      <div class="t-wrap">
+        <img class="t-logo" src="img/logo-transparent.png" alt="" />
+        <div class="t-name">Epoch&nbsp;Buddy</div>
+        <div class="t-bar"></div>
+        <div class="t-tag">Unix timestamps → <b>human time</b>,<br />instantly — on any page.</div>
+      </div>
+    </div>
+  </body>
+</html>
