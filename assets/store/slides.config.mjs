@@ -261,4 +261,12 @@ export const slides = [
     height: 280,
     template: "tile-small.html",
   },
+  // Social/OG link-preview card (1.91:1). Not a store asset — used as og:image
+  // on the GitHub Pages site so shared links render a real card.
+  {
+    id: "promo-og-card",
+    width: 1200,
+    height: 630,
+    template: "tile-og.html",
+  },
 ];
