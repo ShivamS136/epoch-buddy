@@ -1142,32 +1142,51 @@ button:hover {
   align-items: stretch;
 }
 
-.settings-about .chai4me-link {
+.settings-about .chai-link {
   background: #fff4ea;
   border-color: #e9cbb0;
+  color: #7a3c17;
 }
 
-.settings-about .chai4me-link:hover {
+.settings-about .chai-link:hover {
   background: #ffeddd;
-  border-color: #e9cbb0;
+  border-color: #d9ab86;
 }
 
-.chai4me-wordmark {
-  height: 22px;
-  object-fit: contain;
-  display: block;
+.chai-link-icon {
+  color: #c4622d;
 }
 
-.chai4me-handle {
-  color: #6b7280;
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .settings-about .chai-link {
+    background: #3a2415;
+    border-color: #6b4526;
+    color: #f6d9c2;
+  }
+
+  :root:not([data-theme="light"]) .settings-about .chai-link:hover {
+    background: #4a2e1a;
+    border-color: #8a5a33;
+  }
+
+  :root:not([data-theme="light"]) .chai-link-icon {
+    color: #e9a06a;
+  }
+}
+
+[data-theme="dark"] .settings-about .chai-link {
+  background: #3a2415;
+  border-color: #6b4526;
+  color: #f6d9c2;
+}
+
+[data-theme="dark"] .settings-about .chai-link:hover {
+  background: #4a2e1a;
+  border-color: #8a5a33;
+}
+
+[data-theme="dark"] .chai-link-icon {
+  color: #e9a06a;
 }
 
 .hint {

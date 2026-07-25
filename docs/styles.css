@@ -28,6 +28,8 @@
   --result-bg: #f8fafc;
   --shadow-card: 0 10px 24px rgba(15, 23, 42, 0.06);
   --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.1);
+  --chai-ink: #c4622d;
+  --chai-ink-hover: #a04d1f;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +60,8 @@
     --shadow-card: 0 10px 24px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
     --copy-feedback-text: #0f172a;
+    --chai-ink: #e9a06a;
+    --chai-ink-hover: #f3bb8e;
   }
 }
 
@@ -88,6 +92,8 @@
   --shadow-card: 0 10px 24px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
   --copy-feedback-text: #0f172a;
+  --chai-ink: #e9a06a;
+  --chai-ink-hover: #f3bb8e;
 }
 
 body {
@@ -894,6 +900,24 @@ ul.history-list {
 .footer-links {
   display: flex;
   gap: 12px;
+  align-items: center;
+}
+
+.footer-chai {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--chai-ink);
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.footer-chai:hover {
+  color: var(--chai-ink-hover);
+}
+
+.footer-chai svg {
+  flex-shrink: 0;
 }
 
 .muted {

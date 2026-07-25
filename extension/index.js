@@ -1763,18 +1763,10 @@
       }
       loadHistory();
     };
-    const loadDeferredSettingsImages = () => {
-      if (!settingsViewEl) return;
-      settingsViewEl.querySelectorAll("img[data-src]").forEach((img) => {
-        img.src = img.dataset.src;
-        delete img.dataset.src;
-      });
-    };
     const showSettingsView = () => {
       if (!settingsViewEl || !mainViewEl) return;
       mainViewEl.hidden = true;
       settingsViewEl.hidden = false;
-      loadDeferredSettingsImages();
       if (ratingFooterEl)
         ratingFooterEl.dataset.prevHidden = ratingFooterEl.hidden ? "1" : "0";
       if (ratingFooterEl) ratingFooterEl.hidden = true;
@@ -2078,8 +2070,8 @@
       link.addEventListener("click", () => {
         const href = link.getAttribute("href") || "";
         let target = null;
-        if (href.includes("github.com")) target = "github";
-        else if (href.includes("chai4.me")) target = "chai4me";
+        if (href.includes("chai-for-me")) target = "buy_me_a_chai";
+        else if (href.includes("github.com")) target = "github";
         if (target) trackEvent(EVENTS.EXTERNAL_LINK_CLICKED, { target });
       });
     });
